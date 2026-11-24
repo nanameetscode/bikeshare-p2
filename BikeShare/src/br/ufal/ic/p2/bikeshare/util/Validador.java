@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
  */
 public final class Validador {
 
+    private static final Pattern INTEIRO = Pattern.compile("-?[0-9]{1,9}");
     private static final Pattern DECIMAL = Pattern.compile("-?[0-9]+([,.][0-9]+)?");
     private static final Pattern EMAIL = Pattern.compile("[^@ ]+@[^@ ]+");
 
@@ -24,6 +25,14 @@ public final class Validador {
             throw new CampoNuloException(mensagemNulo);
         }
         return valor;
+    }
+
+    public static int inteiro(String valor, String mensagemNulo, String mensagemNaoNumerico) {
+        String texto = obrigatorio(valor, mensagemNulo).trim();
+        if (!INTEIRO.matcher(texto).matches()) {
+            throw new ValorInvalidoException(mensagemNaoNumerico);
+        }
+        return Integer.parseInt(texto);
     }
 
     public static BigDecimal decimal(String valor, String mensagemNulo, String mensagemNaoNumerico) {
