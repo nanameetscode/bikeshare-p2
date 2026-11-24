@@ -1,32 +1,41 @@
 package br.ufal.ic.p2.bikeshare;
 
+import br.ufal.ic.p2.bikeshare.modelo.usuario.DadosUsuario;
+import br.ufal.ic.p2.bikeshare.sistema.Sistema;
+
 /**
- Facade
+ * Ponto de entrada usado pelos testes de aceitacao para acessar o BikeShare.
+ * Cada metodo apenas encaminha o pedido ao {@link Sistema}: operacoes que alteram
+ * o estado passam por {@code sistema.executar}, consultas vao direto ao servico.
  */
 public class Facade {
 
     private static final String AINDA_NAO_IMPLEMENTADO = "Ainda não implementado.";
+
+    private final Sistema sistema = new Sistema();
 
     // =====================================================================
     // US1 - Cadastro de usuario
     // =====================================================================
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cpfOuCnpj) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return criarUsuario(nome, email, senha, tipo, cpfOuCnpj, null, null);
     }
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cnpj, String razaoSocial) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return criarUsuario(nome, email, senha, tipo, cnpj, razaoSocial, null, null);
     }
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cpf,
                                 String plano, String mensalidade) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return sistema.executar(() -> sistema.usuarios().criarPessoaFisica(
+                new DadosUsuario(nome, email, senha), tipo, cpf, plano, mensalidade));
     }
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cnpj,
                                 String razaoSocial, String plano, String mensalidade) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return sistema.executar(() -> sistema.usuarios().criarPessoaJuridica(
+                new DadosUsuario(nome, email, senha), tipo, cnpj, razaoSocial, plano, mensalidade));
     }
 
     // =====================================================================
@@ -34,7 +43,7 @@ public class Facade {
     // =====================================================================
 
     public String getAtributoUsuario(String usuario, String atributo) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return sistema.usuarios().getAtributo(usuario, atributo);
     }
 
     public String getUsuarioPorEmail(String email) {
@@ -193,11 +202,13 @@ public class Facade {
     // Ciclo de vida do sistema
     // =====================================================================
 
+    /** Apaga todos os cadastros e reinicia os contadores de identificadores. */
     public void zerarSistema() {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        sistema.zerar();
     }
 
+    /** Grava o estado atual em disco; a proxima execucao continua dele. */
     public void encerrarSistema() {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        sistema.encerrar();
     }
 }
