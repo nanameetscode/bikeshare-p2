@@ -6,7 +6,7 @@ import br.ufal.ic.p2.bikeshare.sistema.Sistema;
 /**
  * Ponto de entrada usado pelos testes de aceitacao para acessar o BikeShare.
  * Cada metodo apenas encaminha o pedido ao {@link Sistema}: operacoes que alteram
- * o estado passam por {@code sistema.executar}, consultas vao direto ao servico.
+ * o estado passam por {@code sistema.executar} ou {@code executarAcao}; consultas vao direto ao servico.
  */
 public class Facade {
 
@@ -55,15 +55,15 @@ public class Facade {
     // =====================================================================
 
     public void alterarUsuario(String usuario, String atributo, String valor) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        sistema.executarAcao(() -> sistema.alteracoes().alterar(usuario, atributo, valor));
     }
 
     public void alterarUsuario(String usuario, String atributo, String valor1, String chave) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        sistema.executarAcao(() -> sistema.alteracoes().alterarParaPix(usuario, atributo, valor1, chave));
     }
 
     public void alterarUsuario(String usuario, String atributo, String valor1, String numero, String validade) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        sistema.executarAcao(() -> sistema.alteracoes().alterarParaCartao(usuario, atributo, valor1, numero, validade));
     }
 
     // =====================================================================

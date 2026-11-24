@@ -2,7 +2,6 @@ package br.ufal.ic.p2.bikeshare.servico.usuario;
 
 import br.ufal.ic.p2.bikeshare.excecao.usuario.EmailJaCadastradoException;
 import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioNaoEncontradoException;
-import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 import br.ufal.ic.p2.bikeshare.modelo.plano.CatalogoPlanos;
 import br.ufal.ic.p2.bikeshare.modelo.usuario.DadosUsuario;
@@ -68,22 +67,20 @@ public class UsuarioService {
         return usuarios().valores().stream().filter(u -> u.temEmail(email)).findFirst();
     }
 
-    private void validarDados(DadosUsuario dados) {
-        Validador.obrigatorio(dados.nome(), "Nome nao pode ser nulo.");
-        exigirEmailLivre(Validador.email(dados.email()));
-        Validador.obrigatorio(dados.senha(), "Senha nao pode ser nula.");
-    }
-
-    private void exigirEmailLivre(String email) {
-        if (buscarPorEmail(email).isPresent()) {
+    void exigirEmailLivre(String email, Usuario dono) {
+        if (buscarPorEmail(email).filter(u -> u != dono).isPresent()) {
             throw new EmailJaCadastradoException();
         }
     }
 
+    private void validarDados(DadosUsuario dados) {
+        Usuario.validarNome(dados.nome());
+        exigirEmailLivre(Validador.email(dados.email()), null);
+        Usuario.validarSenha(dados.senha());
+    }
+
     private static void exigirTipo(String informado, String esperado) {
-        if (!esperado.equals(informado)) {
-            throw new ValorInvalidoException("Tipo invalido.");
-        }
+        Validador.exigirIgual(informado, esperado, "Tipo invalido.");
     }
 
     private Assinatura contratar(String plano, String mensalidade) {

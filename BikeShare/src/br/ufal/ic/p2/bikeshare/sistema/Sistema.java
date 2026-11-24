@@ -2,6 +2,7 @@ package br.ufal.ic.p2.bikeshare.sistema;
 
 import br.ufal.ic.p2.bikeshare.persistencia.ArquivoEstado;
 import br.ufal.ic.p2.bikeshare.persistencia.Serializador;
+import br.ufal.ic.p2.bikeshare.servico.usuario.AlteracaoUsuarioService;
 import br.ufal.ic.p2.bikeshare.servico.usuario.UsuarioService;
 
 import java.nio.file.Path;
@@ -19,10 +20,12 @@ public class Sistema {
     private final ArquivoEstado arquivo = new ArquivoEstado(ARQUIVO_PADRAO);
     private final EstadoSistema estado;
     private final UsuarioService usuarios;
+    private final AlteracaoUsuarioService alteracoes;
 
     public Sistema() {
         estado = arquivo.carregar().orElseGet(EstadoSistema::new);
         usuarios = new UsuarioService(estado);
+        alteracoes = new AlteracaoUsuarioService(estado, usuarios);
     }
 
     /** Executa uma operacao que altera o estado e devolve o seu resultado. */
@@ -54,5 +57,9 @@ public class Sistema {
 
     public UsuarioService usuarios() {
         return usuarios;
+    }
+
+    public AlteracaoUsuarioService alteracoes() {
+        return alteracoes;
     }
 }
