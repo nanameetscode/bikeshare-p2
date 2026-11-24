@@ -34,6 +34,20 @@ public final class Validador {
         return new BigDecimal(texto.replace(',', '.'));
     }
 
+    public static void exigirIgual(String informado, String esperado, String mensagem) {
+        if (!esperado.equals(informado)) {
+            throw new ValorInvalidoException(mensagem);
+        }
+    }
+
+    public static BigDecimal valorPositivo(String valor) {
+        BigDecimal numero = decimal(valor, "Valor nao pode ser nulo.", "Valor deve ser numerico.");
+        if (numero.signum() <= 0) {
+            throw new ValorInvalidoException("Valor deve ser positivo.");
+        }
+        return numero;
+    }
+
     public static String email(String valor) {
         String email = obrigatorio(valor, "Email nao pode ser nulo.");
         if (!EMAIL.matcher(email).matches()) {

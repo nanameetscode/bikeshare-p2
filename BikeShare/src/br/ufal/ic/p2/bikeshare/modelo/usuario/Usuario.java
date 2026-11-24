@@ -4,14 +4,15 @@ import br.ufal.ic.p2.bikeshare.excecao.usuario.TipoUsuarioIncompativelException;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.MetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.SemMetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
+import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
- * Ciclista cadastrado. Concentra os dados comuns a pessoa fisica e juridica;
- * o documento de identificacao fica em cada subclasse, que sobrescreve so o que possui.
+ * Ciclista cadastrado. Guarda o que e comum a pessoa fisica e juridica;
+ * o documento fica em cada subclasse.
  */
 public abstract class Usuario implements Serializable {
 
@@ -32,13 +33,20 @@ public abstract class Usuario implements Serializable {
 
     protected Usuario(String id, DadosUsuario dados, Assinatura assinatura) {
         this.id = id;
-        this.nome = dados.nome();
-        this.email = dados.email();
-        this.senha = dados.senha();
+        this.nome = validarNome(dados.nome());
+        this.email = Validador.email(dados.email());
+        this.senha = validarSenha(dados.senha());
         this.assinatura = assinatura;
     }
 
-    /** Rotulo do tipo no formato dos testes ({@code pessoaFisica} ou {@code pessoaJuridica}). */
+    public static String validarNome(String nome) {
+        return Validador.obrigatorio(nome, "Nome nao pode ser nulo.");
+    }
+
+    public static String validarSenha(String senha) {
+        return Validador.obrigatorio(senha, "Senha nao pode ser nula.");
+    }
+
     public abstract String getTipo();
 
     public String getCpf() {
@@ -57,6 +65,31 @@ public abstract class Usuario implements Serializable {
         return email.equalsIgnoreCase(outroEmail);
     }
 
+    public void alterarNome(String novoNome) {
+        nome = validarNome(novoNome);
+    }
+
+    public void alterarEmail(String novoEmail) {
+        email = Validador.email(novoEmail);
+    }
+
+    public void alterarSenha(String novaSenha) {
+        senha = validarSenha(novaSenha);
+    }
+
+    public void alterarAssinatura(Assinatura novaAssinatura) {
+        assinatura = novaAssinatura;
+    }
+
+    public void alterarMetodoPagamento(MetodoPagamento novoMetodo) {
+        metodoPagamento = novoMetodo;
+    }
+
+    public void recarregarSaldo(BigDecimal valor) {
+        metodoPagamento.exigirSaldoPreCarregado();
+        saldo = saldo.add(valor);
+    }
+
     public String getId() {
         return id;
     }
@@ -73,16 +106,15 @@ public abstract class Usuario implements Serializable {
         return senha;
     }
 
-    /** Saldo pre-carregado; so pode ser consultado se o metodo de pagamento atual usar saldo. */
     public BigDecimal getSaldo() {
-        return metodoPagamento.exibirSaldo(saldo);
+        metodoPagamento.exigirSaldoPreCarregado();
+        return saldo;
     }
 
     public BigDecimal getTotalPendencias() {
         return totalPendencias;
     }
 
-    /** Identificador do aluguel em andamento, se houver. */
     public Optional<String> getAluguelAtivo() {
         return Optional.ofNullable(aluguelAtivo);
     }
