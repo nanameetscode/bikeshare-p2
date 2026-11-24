@@ -90,11 +90,14 @@ flowchart TD
 1. **Façade**: [`Facade`](BikeShare/src/br/ufal/ic/p2/bikeshare/Facade.java) só encaminha. Os comandos que alteram o estado passam por `Sistema.executar`, e as consultas vão direto ao serviço.
 2. **Strategy**: o que varia é um objeto trocável.
    - [`Plano`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/plano/Plano.java): cada plano calcula a tarifa de uma corrida (`calcularTarifa`) e decide se cobra mensalidade.
-   - [`MetodoPagamento`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/pagamento/MetodoPagamento.java): cada método autoriza a retirada e cobra a corrida do seu jeito, e expõe só os dados que possui.
+   - [`MetodoPagamento`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/pagamento/MetodoPagamento.java): cada método autoriza a retirada e cobra a corrida do seu jeito (o cartão vencido não autoriza; o saldo pré-carregado precisa cobrir o valor), e expõe os próprios dados por um único método, `getDado`.
    - [`Bicicleta`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/bicicleta/Bicicleta.java): a elétrica sobrescreve a checagem de bateria e o adicional por minuto.
 3. **Null Object**: [`SemMetodoPagamento`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/pagamento/SemMetodoPagamento.java) representa o usuário que ainda não cadastrou forma de pagamento, em vez de `null`.
 4. **Factory**: o enum [`TipoBicicleta`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/bicicleta/TipoBicicleta.java) cria a bicicleta de cada tipo, sem `switch`; [`FabricaMetodoPagamento`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/pagamento/FabricaMetodoPagamento.java) cria o método de pagamento pedido.
-5. **State (enum)**: [`EstadoAluguel`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/aluguel/EstadoAluguel.java) decide, em cada estado, o que o aluguel aceita (só o aluguel em andamento é devolvido; só o encerrado tem fim e valor).
+5. **State (enum)**: cada estado decide o que o objeto aceita, em vez de comparações espalhadas.
+   - [`EstadoAluguel`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/aluguel/EstadoAluguel.java): só o aluguel em andamento é devolvido; só o encerrado tem fim e valor.
+   - [`EstadoBicicleta`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/bicicleta/EstadoBicicleta.java): só a bicicleta disponível é retirada ou removida.
+   - [`EstadoUsuario`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/usuario/EstadoUsuario.java): o inadimplente não retira bicicleta.
 6. **Memento**: [`Sistema`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Sistema.java) copia o estado antes de cada comando e restaura essa cópia se o comando falhar no meio. A mesma cópia servirá de base para o undo/redo (US16, Milestone 2).
 
 ---
@@ -115,16 +118,17 @@ flowchart TD
 
 | Regra | Como o projeto cumpre |
 |---|---|
-| **Proibido o uso de `instanceof`** | O código não tem `instanceof` nem `getClass()`. O que só existe em um tipo (CPF, CNPJ, número do cartão, chave pix, saldo, nível de bateria) é pedido por polimorfismo; nos outros tipos, o método lança o erro de negócio certo. |
+| **Proibido o uso de `instanceof`** | O código não tem `instanceof` nem `getClass()`. O que só existe em um tipo é pedido por polimorfismo: documentos do usuário por `getDocumento`, dados do pagamento por `getDado`, saldo pelo próprio `SaldoPreCarregado`, bateria pela `BicicletaEletrica`. Nos outros tipos, o método lança o erro de negócio certo, mapeado nos enums `DocumentoUsuario` e `DadoPagamento`. |
 | **Proibido lançar exceções genéricas** | Todo erro é uma subclasse de `BikeShareException`, com a mensagem exata que o EasyAccept espera. Falhas de arquivo viram `PersistenciaException`, que guarda a causa original. |
 | **Princípio DRY** | As regras de preenchimento ficam em `Validador`; a formatação de dinheiro em `Formato`; a geração de ids em `Cadastro`. |
 | **Herança semântica correta** | `PessoaFisica` e `PessoaJuridica` só acrescentam o próprio documento; `BicicletaEletrica` só acrescenta a bateria. O que é comum fica na classe-mãe. |
 | **Foco em polimorfismo** | Planos, métodos de pagamento, tipos de usuário e de bicicleta não são decididos por `switch` sobre o tipo. |
 
 Outras garantias:
-- **Restauração em falha**: se um comando falhar no meio, o estado volta a ser exatamente o de antes, e o id que seria gerado não é consumido.
-- **Objetos sempre válidos**: `Usuario`, `Estacao`, `Cartao`, `Pix` e `BicicletaEletrica` recusam dados vazios ou fora do intervalo; a estação não recebe bicicleta além da capacidade.
-- **Parâmetros configuráveis**: tarifas, franquia, mensalidade padrão, carência, tempo máximo, adicional da elétrica, bateria mínima e multa por atraso ficam em [`Configuracao`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Configuracao.java), não espalhados pelo código.
+- **Restauração em falha**: se um comando falhar no meio, o estado volta a ser exatamente o de antes, e o id que seria gerado não é consumido. Copiar o estado inteiro a cada comando custa mais com milhares de cadastros, mas é desprezível no tamanho dos testes e garante que nada fique pela metade.
+- **Objetos sempre válidos**: a validação fica no próprio objeto, não no serviço. Usuários, estações, bicicletas, aluguéis, planos e métodos de pagamento recusam dados vazios ou fora do intervalo já no construtor; o saldo não aceita recarga negativa; o usuário não inicia um segundo aluguel; a estação não recebe a mesma bicicleta duas vezes nem além da capacidade.
+- **Uma única fonte de verdade**: a estação é quem sabe quais bicicletas estão nela; a bicicleta não guarda uma cópia dessa informação.
+- **Parâmetros configuráveis**: tarifas, franquia, mensalidade padrão, carência, tempo máximo, adicional da elétrica, bateria mínima e multa por atraso ficam em [`Configuracao`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Configuracao.java), com os valores do enunciado como padrão. Para trocar algum, basta criar um `bikeshare.properties` na pasta `BikeShare` (ex.: `minutosCarencia=5`). Os limites valem na execução seguinte; os valores dos planos padrão entram quando o sistema é zerado, porque quem já contratou um plano mantém as condições do contrato.
 - **Dinheiro em `BigDecimal`**: sem erro de arredondamento de `double`.
 
 ---
@@ -145,7 +149,7 @@ Outras garantias:
 
 **Planos**: o usuário pode informar o plano e a mensalidade no cadastro; sem plano, ele fica no avulso. O plano avulso não tem mensalidade, e informá-la é um erro. Escolher de novo o plano atual mantém a mensalidade contratada.
 
-**Pagamento**: cartão e Pix autorizam qualquer corrida. O saldo pré-carregado precisa ser positivo para retirar e cobrir o valor para devolver; se não cobrir, a devolução é recusada e o aluguel continua em andamento. O saldo fica guardado na conta mesmo se o usuário trocar de método e voltar.
+**Pagamento**: Pix autoriza qualquer corrida; cartão também, desde que não esteja vencido na data da retirada (regra 11 do enunciado: método de pagamento **válido**). O saldo pré-carregado precisa ser positivo para retirar e cobrir o valor para devolver; se não cobrir, a devolução é recusada e o aluguel continua em andamento. O saldo fica guardado na conta mesmo se o usuário trocar de método e voltar.
 
 **Retirada**: o usuário precisa estar ativo e sem aluguel em andamento; a bicicleta precisa estar disponível, naquela estação e, se for elétrica, com bateria suficiente. Bicicletas elétricas abaixo do mínimo ocupam vaga mas não contam como disponíveis.
 
@@ -180,9 +184,9 @@ Outras garantias:
 ## 7. Persistência de Dados
 
 Conforme o enunciado, o projeto não usa banco de dados:
-- O estado inteiro ([`EstadoSistema`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/EstadoSistema.java)) é gravado em `bikeshare_data.ser` com a serialização nativa do Java (`java.io.Serializable`), uma das duas opções permitidas pelo enunciado. Vão para o arquivo os cadastros, os planos e os contadores de ids.
+- O estado inteiro ([`EstadoSistema`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/EstadoSistema.java)) é gravado em `bikeshare_data.ser` com a serialização nativa do Java (`java.io.Serializable`), uma das duas opções permitidas pelo enunciado. Vão para o arquivo os cadastros, os planos e os contadores de ids. A configuração não vai: ela é parâmetro, não estado, e é lida de novo a cada execução.
 - A serialização foi escolhida porque deixa as classes do domínio sem setters públicos e sem construtores vazios, mantendo o encapsulamento.
-- A leitura e a escrita ficam isoladas em [`ArquivoEstado`](BikeShare/src/br/ufal/ic/p2/bikeshare/persistencia/ArquivoEstado.java). Um arquivo ilegível gera `PersistenciaException` em vez de começar o sistema vazio sem avisar.
+- A leitura e a escrita ficam isoladas em [`ArquivoEstado`](BikeShare/src/br/ufal/ic/p2/bikeshare/persistencia/ArquivoEstado.java). Um arquivo ilegível, ou com conteúdo de outro tipo, gera `PersistenciaException` em vez de começar o sistema vazio sem avisar.
 - Nada vai para o arquivo antes de `encerrarSistema`, que grava o estado para o próximo script.
 
 ---
