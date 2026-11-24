@@ -36,6 +36,10 @@ public class Cadastro<T extends Serializable> implements Serializable {
         return Optional.ofNullable(itens.get(id));
     }
 
+    public boolean contem(String id) {
+        return itens.containsKey(id);
+    }
+
     public void remover(String id) {
         itens.remove(id);
     }

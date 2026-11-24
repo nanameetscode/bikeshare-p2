@@ -2,6 +2,7 @@ package br.ufal.ic.p2.bikeshare.sistema;
 
 import br.ufal.ic.p2.bikeshare.persistencia.ArquivoEstado;
 import br.ufal.ic.p2.bikeshare.persistencia.Serializador;
+import br.ufal.ic.p2.bikeshare.servico.bicicleta.BicicletaService;
 import br.ufal.ic.p2.bikeshare.servico.estacao.EstacaoService;
 import br.ufal.ic.p2.bikeshare.servico.usuario.AlteracaoUsuarioService;
 import br.ufal.ic.p2.bikeshare.servico.usuario.UsuarioService;
@@ -23,12 +24,14 @@ public class Sistema {
     private final UsuarioService usuarios;
     private final AlteracaoUsuarioService alteracoes;
     private final EstacaoService estacoes;
+    private final BicicletaService bicicletas;
 
     public Sistema() {
         estado = arquivo.carregar().orElseGet(EstadoSistema::new);
         usuarios = new UsuarioService(estado);
         alteracoes = new AlteracaoUsuarioService(estado, usuarios);
         estacoes = new EstacaoService(estado);
+        bicicletas = new BicicletaService(estado, estacoes);
     }
 
     /** Executa uma operacao que altera o estado e devolve o seu resultado. */
@@ -68,5 +71,9 @@ public class Sistema {
 
     public EstacaoService estacoes() {
         return estacoes;
+    }
+
+    public BicicletaService bicicletas() {
+        return bicicletas;
     }
 }
