@@ -43,8 +43,8 @@ public class BicicletaService {
     }
 
     public Bicicleta buscar(String id) {
-        Validador.obrigatorio(id, "Identificacao da bicicleta nao pode ser nula.");
-        return bicicletas().buscar(id).orElseThrow(BicicletaNaoEncontradaException::new);
+        return bicicletas().exigir(id, "Identificacao da bicicleta nao pode ser nula.",
+                BicicletaNaoEncontradaException::new);
     }
 
     public String getAtributo(String id, String atributo) {

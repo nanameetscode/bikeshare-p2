@@ -26,8 +26,8 @@ public class EstacaoService {
     }
 
     public Estacao buscar(String id) {
-        Validador.obrigatorio(id, "Identificacao da estacao nao pode ser nula.");
-        return estacoes().buscar(id).orElseThrow(EstacaoNaoEncontradaException::new);
+        return estacoes().exigir(id, "Identificacao da estacao nao pode ser nula.",
+                EstacaoNaoEncontradaException::new);
     }
 
     public String getVagasDisponiveis(String id) {

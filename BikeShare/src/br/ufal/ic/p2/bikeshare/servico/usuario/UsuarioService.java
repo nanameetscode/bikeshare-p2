@@ -50,8 +50,8 @@ public class UsuarioService {
     }
 
     public Usuario buscar(String id) {
-        Validador.obrigatorio(id, "Identificacao do usuario nao pode ser nula.");
-        return usuarios().buscar(id).orElseThrow(UsuarioNaoEncontradoException::new);
+        return usuarios().exigir(id, "Identificacao do usuario nao pode ser nula.",
+                UsuarioNaoEncontradoException::new);
     }
 
     public void remover(String id) {

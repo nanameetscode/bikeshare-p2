@@ -29,7 +29,6 @@ public class EstadoSistema implements Serializable {
         zerar();
     }
 
-    /** Volta ao estado inicial: sem cadastros, contadores zerados e so os planos padrao. */
     public final void zerar() {
         configuracao = new Configuracao();
         planos = criarPlanosPadrao(configuracao);
@@ -39,7 +38,6 @@ public class EstadoSistema implements Serializable {
         alugueis = new Cadastro<>("A");
     }
 
-    /** Substitui o conteudo atual pelo de outro estado (usado ao restaurar uma copia). */
     public void restaurar(EstadoSistema outro) {
         configuracao = outro.configuracao;
         planos = outro.planos;

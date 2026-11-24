@@ -11,7 +11,6 @@ import br.ufal.ic.p2.bikeshare.servico.usuario.UsuarioService;
 import br.ufal.ic.p2.bikeshare.sistema.Cadastro;
 import br.ufal.ic.p2.bikeshare.sistema.EstadoSistema;
 import br.ufal.ic.p2.bikeshare.util.Datas;
-import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.time.LocalDateTime;
 
@@ -52,8 +51,8 @@ public class AluguelService {
     }
 
     public Aluguel buscar(String id) {
-        Validador.obrigatorio(id, "Identificacao do aluguel nao pode ser nula.");
-        return alugueis().buscar(id).orElseThrow(AluguelNaoEncontradoException::new);
+        return alugueis().exigir(id, "Identificacao do aluguel nao pode ser nula.",
+                AluguelNaoEncontradoException::new);
     }
 
     public String getAtributo(String id, String atributo) {
