@@ -31,7 +31,7 @@ O **BikeShare** é a lógica de negócio de um serviço de bicicletas compartilh
 
 ### Objetivos Principais:
 - **Separação Rígida de Camadas**: o sistema contém **apenas a lógica de negócio**, sem interface gráfica e sem banco de dados. Toda a comunicação externa passa por uma fachada pública usada pelos scripts de teste.
-- **Conformidade de Requisitos**: obter **100% de aprovação** nos testes de aceitação do **EasyAccept** (`tests/us1.txt` a `tests/us16.txt`, com as continuações `_1`).
+- **Conformidade de Requisitos**: obter **100% de aprovação** nos testes de aceitação do **EasyAccept** (`tests/us1.txt` a `tests/us16.txt`, com as continuações `_1`). O Milestone 1 (US1 a US9) está completo.
 - **Modelagem Orientada a Objetos**: as diferenças entre tipos de usuário, bicicleta, plano e método de pagamento são resolvidas por polimorfismo, nunca por `instanceof`.
 
 ---
@@ -42,21 +42,31 @@ O **BikeShare** é a lógica de negócio de um serviço de bicicletas compartilh
 flowchart TD
     EA["EasyAccept (scripts .txt)"] --> F["Facade"]
     F --> Sis["sistema.Sistema<br/>execução com restauração em falha"]
-    Sis --> Usu["servico.usuario<br/>UsuarioService, AtributosUsuario"]
+    Sis --> Usu["servico.usuario<br/>UsuarioService, AlteracaoUsuarioService"]
+    Sis --> EB["servico.estacao / servico.bicicleta<br/>EstacaoService, BicicletaService"]
+    Sis --> Alu["servico.aluguel<br/>AluguelService, DevolucaoService"]
     Sis --> Est["sistema.EstadoSistema<br/>todo o estado em um objeto"]
     Sis --> Arq["persistencia<br/>ArquivoEstado, Serializador"]
     Usu --> Est
+    EB --> Est
+    Alu --> Est
 
     subgraph modelo ["modelo"]
         U["usuario.Usuario<br/>PessoaFisica | PessoaJuridica"]
         P["plano.Plano<br/>PlanoAvulso | PlanoMensal"]
-        M["pagamento.MetodoPagamento<br/>SemMetodoPagamento | ..."]
+        M["pagamento.MetodoPagamento<br/>SemMetodoPagamento | Cartao | Pix | SaldoPreCarregado"]
+        E["estacao.Estacao"]
+        B["bicicleta.Bicicleta<br/>BicicletaConvencional | BicicletaEletrica"]
+        AL["aluguel.Aluguel<br/>EstadoAluguel"]
         U --> A["plano.Assinatura"]
         A --> P
         U --> M
+        E --> B
     end
 
     Est --> U
+    Est --> E
+    Est --> AL
     Est --> CP["plano.CatalogoPlanos"]
     Est --> Cfg["sistema.Configuracao<br/>tarifas e limites"]
 ```
@@ -68,20 +78,24 @@ flowchart TD
 | Pacote | Conteúdo |
 |---|---|
 | `bikeshare` | `Facade` (ponto de entrada do EasyAccept) |
-| `excecao` | `BikeShareException` (classe-mãe) e os erros agrupados em `validacao`, `usuario`, `plano` e `sistema` |
-| `modelo` | o domínio dividido por assunto: `usuario`, `plano`, `pagamento` |
+| `excecao` | `BikeShareException` (classe-mãe) e os erros agrupados em `validacao`, `usuario`, `plano`, `pagamento`, `estacao`, `bicicleta`, `aluguel` e `sistema` |
+| `modelo` | o domínio dividido por assunto: `usuario`, `plano`, `pagamento`, `estacao`, `bicicleta`, `aluguel` |
 | `servico` | casos de uso, chamados pela fachada |
 | `sistema` | coordenador (`Sistema`), estado completo (`EstadoSistema`), coleções com geração de ids (`Cadastro`) e parâmetros (`Configuracao`) |
 | `persistencia` | gravação e leitura do estado em disco |
-| `util` | regras de preenchimento (`Validador`) e formatação da saída (`Formato`) |
+| `util` | regras de preenchimento (`Validador`), formatação de dinheiro (`Formato`) e de datas (`Datas`) |
 
 ### Padrões de Projeto Empregados
 
 1. **Façade**: [`Facade`](BikeShare/src/br/ufal/ic/p2/bikeshare/Facade.java) só encaminha. Os comandos que alteram o estado passam por `Sistema.executar`, e as consultas vão direto ao serviço.
 2. **Strategy**: o que varia é um objeto trocável.
    - [`Plano`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/plano/Plano.java): cada plano calcula a tarifa de uma corrida (`calcularTarifa`) e decide se cobra mensalidade.
+   - [`MetodoPagamento`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/pagamento/MetodoPagamento.java): cada método autoriza a retirada e cobra a corrida do seu jeito, e expõe só os dados que possui.
+   - [`Bicicleta`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/bicicleta/Bicicleta.java): a elétrica sobrescreve a checagem de bateria e o adicional por minuto.
 3. **Null Object**: [`SemMetodoPagamento`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/pagamento/SemMetodoPagamento.java) representa o usuário que ainda não cadastrou forma de pagamento, em vez de `null`.
-4. **Memento**: [`Sistema`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Sistema.java) copia o estado antes de cada comando e restaura essa cópia se o comando falhar no meio. A mesma cópia é a base do undo/redo (US16).
+4. **Factory**: o enum [`TipoBicicleta`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/bicicleta/TipoBicicleta.java) cria a bicicleta de cada tipo, sem `switch`; [`FabricaMetodoPagamento`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/pagamento/FabricaMetodoPagamento.java) cria o método de pagamento pedido.
+5. **State (enum)**: [`EstadoAluguel`](BikeShare/src/br/ufal/ic/p2/bikeshare/modelo/aluguel/EstadoAluguel.java) decide, em cada estado, o que o aluguel aceita (só o aluguel em andamento é devolvido; só o encerrado tem fim e valor).
+6. **Memento**: [`Sistema`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Sistema.java) copia o estado antes de cada comando e restaura essa cópia se o comando falhar no meio. A mesma cópia servirá de base para o undo/redo (US16, Milestone 2).
 
 ---
 
@@ -101,15 +115,16 @@ flowchart TD
 
 | Regra | Como o projeto cumpre |
 |---|---|
-| **Proibido o uso de `instanceof`** | O código não tem `instanceof` nem `getClass()`. O que só existe em um tipo (CPF, CNPJ, razão social) é pedido por polimorfismo; nos outros tipos, o método lança o erro de negócio certo. |
+| **Proibido o uso de `instanceof`** | O código não tem `instanceof` nem `getClass()`. O que só existe em um tipo (CPF, CNPJ, número do cartão, chave pix, saldo, nível de bateria) é pedido por polimorfismo; nos outros tipos, o método lança o erro de negócio certo. |
 | **Proibido lançar exceções genéricas** | Todo erro é uma subclasse de `BikeShareException`, com a mensagem exata que o EasyAccept espera. Falhas de arquivo viram `PersistenciaException`, que guarda a causa original. |
 | **Princípio DRY** | As regras de preenchimento ficam em `Validador`; a formatação de dinheiro em `Formato`; a geração de ids em `Cadastro`. |
-| **Herança semântica correta** | `PessoaFisica` e `PessoaJuridica` só acrescentam o próprio documento; o que é comum fica em `Usuario`. |
-| **Foco em polimorfismo** | Planos e tipos de usuário não são decididos por `switch` sobre o tipo. |
+| **Herança semântica correta** | `PessoaFisica` e `PessoaJuridica` só acrescentam o próprio documento; `BicicletaEletrica` só acrescenta a bateria. O que é comum fica na classe-mãe. |
+| **Foco em polimorfismo** | Planos, métodos de pagamento, tipos de usuário e de bicicleta não são decididos por `switch` sobre o tipo. |
 
 Outras garantias:
 - **Restauração em falha**: se um comando falhar no meio, o estado volta a ser exatamente o de antes, e o id que seria gerado não é consumido.
-- **Parâmetros configuráveis**: tarifas, franquia e mensalidade padrão ficam em [`Configuracao`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Configuracao.java), não espalhados pelo código.
+- **Objetos sempre válidos**: `Usuario`, `Estacao`, `Cartao`, `Pix` e `BicicletaEletrica` recusam dados vazios ou fora do intervalo; a estação não recebe bicicleta além da capacidade.
+- **Parâmetros configuráveis**: tarifas, franquia, mensalidade padrão, carência, tempo máximo, adicional da elétrica, bateria mínima e multa por atraso ficam em [`Configuracao`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Configuracao.java), não espalhados pelo código.
 - **Dinheiro em `BigDecimal`**: sem erro de arredondamento de `double`.
 
 ---
@@ -120,10 +135,21 @@ Outras garantias:
 |---|---|
 | Tarifa do plano avulso | R$ 0,50 por minuto |
 | Plano assinante | 60 minutos grátis por corrida, R$ 0,30 por minuto excedente, mensalidade padrão de R$ 30,00 |
+| Adicional da bicicleta elétrica | R$ 0,20 por minuto, cobrado mesmo dentro da franquia |
+| Bateria mínima para retirada | 15% |
+| Carência | até 2 minutos, devolvendo na mesma estação: aluguel cancelado, sem cobrança |
+| Tempo máximo | 24 horas; acima disso o aluguel expira |
+| Multa por atraso | R$ 10,00 |
 
-**Usuários**: o identificador é gerado pelo sistema (`U1`, `U2`...) e nunca é reaproveitado, nem depois de remoções. Cadastros recusados não consomem id. O email é único, sem diferenciar maiúsculas de minúsculas. Campos preenchidos só com espaços contam como vazios.
+**Usuários**: o identificador é gerado pelo sistema (`U1`, `U2`...) e nunca é reaproveitado, nem depois de remoções. Cadastros recusados não consomem id. O email é único, sem diferenciar maiúsculas de minúsculas. Campos preenchidos só com espaços contam como vazios. Quem tem aluguel em andamento não pode ser removido.
 
-**Planos**: o usuário pode informar o plano e a mensalidade no cadastro; sem plano, ele fica no avulso. O plano avulso não tem mensalidade, e informá-la é um erro.
+**Planos**: o usuário pode informar o plano e a mensalidade no cadastro; sem plano, ele fica no avulso. O plano avulso não tem mensalidade, e informá-la é um erro. Escolher de novo o plano atual mantém a mensalidade contratada.
+
+**Pagamento**: cartão e Pix autorizam qualquer corrida. O saldo pré-carregado precisa ser positivo para retirar e cobrir o valor para devolver; se não cobrir, a devolução é recusada e o aluguel continua em andamento. O saldo fica guardado na conta mesmo se o usuário trocar de método e voltar.
+
+**Retirada**: o usuário precisa estar ativo e sem aluguel em andamento; a bicicleta precisa estar disponível, naquela estação e, se for elétrica, com bateria suficiente. Bicicletas elétricas abaixo do mínimo ocupam vaga mas não contam como disponíveis.
+
+**Devolução**: a estação precisa ter vaga. Acima do tempo máximo o aluguel expira sem cobrança da tarifa, o usuário recebe a multa e fica inadimplente, e a bicicleta vai para manutenção. Na mesma estação, dentro da carência, o aluguel é cancelado. Nos demais casos, o valor é `tarifa do plano + adicional da bicicleta`.
 
 ---
 
@@ -131,14 +157,14 @@ Outras garantias:
 
 ### Milestone 1 (User Stories 1 a 9)
 - [x] **US1**: Cadastrar usuário pessoa física (CPF) ou jurídica (CNPJ e razão social)
-- [ ] **US2**: Consultar os atributos de um usuário e buscá-lo pelo email
-- [ ] **US3**: Alterar nome, email, senha, plano e método de pagamento
-- [ ] **US4**: Remover usuário, impedindo quem tem aluguel em andamento
-- [ ] **US5**: Cadastrar estação (nome, endereço e capacidade)
-- [ ] **US6**: Adicionar e remover bicicletas convencionais ou elétricas
-- [ ] **US7**: Consultar bicicletas disponíveis e vagas livres
-- [ ] **US8**: Retirar bicicleta, iniciando um aluguel
-- [ ] **US9**: Devolver bicicleta, finalizando o aluguel e calculando o valor
+- [x] **US2**: Consultar os atributos de um usuário e buscá-lo pelo email
+- [x] **US3**: Alterar nome, email, senha, plano e método de pagamento
+- [x] **US4**: Remover usuário, impedindo quem tem aluguel em andamento
+- [x] **US5**: Cadastrar estação (nome, endereço e capacidade)
+- [x] **US6**: Adicionar e remover bicicletas convencionais ou elétricas
+- [x] **US7**: Consultar bicicletas disponíveis e vagas livres
+- [x] **US8**: Retirar bicicleta, iniciando um aluguel
+- [x] **US9**: Devolver bicicleta, finalizando o aluguel e calculando o valor
 
 ### Milestone 2 (User Stories 10 a 16)
 - [ ] **US10**: Histórico de aluguéis do usuário
@@ -202,7 +228,7 @@ javac -encoding UTF-8 -Xlint:all -cp "lib/easyaccept.jar" -d out (Get-ChildItem 
 
 ### 9.2 Todos os scripts de uma vez
 
-A classe [`Main`](BikeShare/src/Main.java) roda, em ordem, todos os scripts de US1 a US16, incluindo as continuações `_1`:
+A classe [`Main`](BikeShare/src/Main.java), fornecida pelo monitor, roda em ordem todos os scripts de US1 a US16, incluindo as continuações `_1`. Os scripts do Milestone 2 (US10 em diante) ainda falham, porque essas US não foram implementadas. Para conferir só o Milestone 1, use o `testar.sh` (seção 9.3):
 
 ```bash
 java -cp "out:lib/easyaccept.jar" Main     # Linux / macOS
@@ -214,7 +240,7 @@ java -cp "out;lib\easyaccept.jar" Main     # Windows
 O script [`testar.sh`](BikeShare/testar.sh) compila e roda os scripts pedidos:
 
 ```bash
-bash testar.sh us1 us1_1 us2
+bash testar.sh us1 us1_1 us2 us3 us3_1 us4 us4_1 us5 us5_1 us6 us6_1 us7 us8 us8_1 us9 us9_1
 ```
 
 ---
