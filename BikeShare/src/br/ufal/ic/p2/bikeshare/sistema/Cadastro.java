@@ -1,6 +1,9 @@
 package br.ufal.ic.p2.bikeshare.sistema;
 
 import br.ufal.ic.p2.bikeshare.excecao.BikeShareException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.IdentificadorDuplicadoException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.IdentificadorInexistenteException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.RegistroInvalidoException;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
@@ -33,7 +36,14 @@ public class Cadastro<T extends Serializable> implements Serializable {
         return prefixo + contador;
     }
 
+    /** Guarda o item; recusa item nulo, id vazio ou id ja usado, para o cadastro nunca ficar inconsistente. */
     public void adicionar(String id, T item) {
+        if (item == null || id == null || id.isBlank()) {
+            throw new RegistroInvalidoException();
+        }
+        if (contem(id)) {
+            throw new IdentificadorDuplicadoException();
+        }
         itens.put(id, item);
     }
 
@@ -52,6 +62,9 @@ public class Cadastro<T extends Serializable> implements Serializable {
     }
 
     public void remover(String id) {
+        if (!contem(id)) {
+            throw new IdentificadorInexistenteException();
+        }
         itens.remove(id);
     }
 
