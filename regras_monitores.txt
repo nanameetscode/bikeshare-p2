@@ -1,0 +1,17 @@
+REGRAS PASSADAS PELOS MONITORES
+
+- nunca criar uma excecao generica, sempre tem que criar uma excecao personalizada
+- instanceof nao pode
+- evitar repetir blocos de codigo
+- fazer a heranca certo, com as classes filhas herdando as caracteristicas do pai
+- usar o maximo de polimorfismo
+
+LICOES DA REVISAO DO WEPAYU (AB1)
+
+- a Facade so encaminha: um comando por metodo, sem controle de undo nem leitura de arquivo
+- cada classe com uma responsabilidade; nenhum metodo com mais de 20 linhas
+- dados protegidos: nada de entregar listas ou mapas internos para fora
+- objetos sempre validos: o proprio objeto recusa nome vazio, valor negativo etc.
+- se um comando falhar no meio, o estado volta a ser o de antes
+- excecoes com uma classe-mae comum, agrupadas em pacotes por assunto
+- nada de codigo sem uso, numeros soltos no codigo ou dinheiro em double
