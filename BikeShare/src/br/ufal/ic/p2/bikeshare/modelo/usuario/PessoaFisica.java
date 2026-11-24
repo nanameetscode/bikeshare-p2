@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
+import br.ufal.ic.p2.bikeshare.util.Validador;
 
 /** Usuario identificado por CPF. */
 public class PessoaFisica extends Usuario {
@@ -12,7 +13,7 @@ public class PessoaFisica extends Usuario {
 
     public PessoaFisica(String id, DadosUsuario dados, Assinatura assinatura, String cpf) {
         super(id, dados, assinatura);
-        this.cpf = cpf;
+        this.cpf = Validador.obrigatorio(cpf, "CPF nao pode ser nulo.");
     }
 
     @Override
@@ -21,7 +22,10 @@ public class PessoaFisica extends Usuario {
     }
 
     @Override
-    public String getCpf() {
-        return cpf;
+    public String getDocumento(String atributo) {
+        if (DocumentoUsuario.CPF.getAtributo().equals(atributo)) {
+            return cpf;
+        }
+        return super.getDocumento(atributo);
     }
 }

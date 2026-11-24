@@ -1,6 +1,5 @@
 package br.ufal.ic.p2.bikeshare.modelo.plano;
 
-import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.math.BigDecimal;
@@ -9,23 +8,21 @@ import java.math.BigDecimal;
 public class PlanoMensal extends Plano {
 
     private static final long serialVersionUID = 1L;
+    private static final String MENSALIDADE_NEGATIVA = "Mensalidade deve ser nao-negativa.";
 
     private final BigDecimal mensalidadePadrao;
 
     public PlanoMensal(String nome, int franquiaMinutos, BigDecimal valorMinutoExcedente,
                        BigDecimal mensalidadePadrao) {
         super(nome, franquiaMinutos, valorMinutoExcedente);
-        this.mensalidadePadrao = mensalidadePadrao;
+        this.mensalidadePadrao = Validador.naoNegativo(mensalidadePadrao, MENSALIDADE_NEGATIVA);
     }
 
     @Override
     public Assinatura assinar(String mensalidadeInformada) {
         BigDecimal mensalidade = Validador.decimal(mensalidadeInformada,
                 "Mensalidade nao pode ser nula.", "Mensalidade deve ser numerica.");
-        if (mensalidade.signum() < 0) {
-            throw new ValorInvalidoException("Mensalidade deve ser nao-negativa.");
-        }
-        return new Assinatura(this, mensalidade);
+        return new Assinatura(this, Validador.naoNegativo(mensalidade, MENSALIDADE_NEGATIVA));
     }
 
     @Override

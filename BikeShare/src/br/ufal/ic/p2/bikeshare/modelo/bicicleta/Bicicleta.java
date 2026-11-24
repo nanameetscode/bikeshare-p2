@@ -1,14 +1,15 @@
 package br.ufal.ic.p2.bikeshare.modelo.bicicleta;
 
 import br.ufal.ic.p2.bikeshare.excecao.bicicleta.OperacaoBicicletaInvalidaException;
+import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Optional;
 
 /**
  * Bicicleta do sistema. A convencional usa o comportamento padrao desta classe;
- * a eletrica sobrescreve o que depende da bateria.
+ * a eletrica sobrescreve o que depende da bateria. Em qual estacao ela esta
+ * e informacao da propria estacao.
  */
 public abstract class Bicicleta implements Serializable {
 
@@ -16,10 +17,9 @@ public abstract class Bicicleta implements Serializable {
 
     private final String id;
     private EstadoBicicleta estado = EstadoBicicleta.DISPONIVEL;
-    private String estacao;
 
     protected Bicicleta(String id) {
-        this.id = id;
+        this.id = Validador.obrigatorio(id, "Identificacao da bicicleta nao pode ser nula.");
     }
 
     public abstract String getTipo();
@@ -34,6 +34,14 @@ public abstract class Bicicleta implements Serializable {
 
     public BigDecimal calcularAdicional(long minutos, BigDecimal adicionalPorMinuto) {
         return BigDecimal.ZERO;
+    }
+
+    public boolean podeSerRetirada(int nivelMinimo) {
+        return estado.estaDisponivel() && temBateriaSuficiente(nivelMinimo);
+    }
+
+    public void exigirDisponivel() {
+        estado.exigirDisponivel();
     }
 
     public void exigirBateria(int nivelMinimo) {
@@ -55,33 +63,11 @@ public abstract class Bicicleta implements Serializable {
         estado = EstadoBicicleta.EM_MANUTENCAO;
     }
 
-    public boolean podeSerRetirada(int nivelMinimo) {
-        return estado == EstadoBicicleta.DISPONIVEL && temBateriaSuficiente(nivelMinimo);
-    }
-
-    public void exigirDisponivel() {
-        if (estado != EstadoBicicleta.DISPONIVEL) {
-            throw new OperacaoBicicletaInvalidaException("Bicicleta nao esta disponivel.");
-        }
-    }
-
-    public void estacionar(String idEstacao) {
-        estacao = idEstacao;
-    }
-
-    public void sairDaEstacao() {
-        estacao = null;
-    }
-
     public String getId() {
         return id;
     }
 
     public EstadoBicicleta getEstado() {
         return estado;
-    }
-
-    public Optional<String> getEstacao() {
-        return Optional.ofNullable(estacao);
     }
 }

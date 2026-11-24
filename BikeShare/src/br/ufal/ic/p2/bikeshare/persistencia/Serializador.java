@@ -25,17 +25,17 @@ public final class Serializador {
         return bytes.toByteArray();
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T extends Serializable> T deBytes(byte[] dados) {
+    /** Reconstroi o objeto; recusa bytes que nao sejam do tipo esperado. */
+    public static <T extends Serializable> T deBytes(byte[] dados, Class<T> tipo) {
         try (ObjectInputStream entrada = new ObjectInputStream(new ByteArrayInputStream(dados))) {
-            return (T) entrada.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+            return tipo.cast(entrada.readObject());
+        } catch (IOException | ClassNotFoundException | ClassCastException e) {
             throw new PersistenciaException("Nao foi possivel ler o estado do sistema.", e);
         }
     }
 
     /** Copia profunda: o resultado nao compartilha nenhum objeto com o original. */
-    public static <T extends Serializable> T copiar(T objeto) {
-        return deBytes(paraBytes(objeto));
+    public static <T extends Serializable> T copiar(T objeto, Class<T> tipo) {
+        return deBytes(paraBytes(objeto), tipo);
     }
 }

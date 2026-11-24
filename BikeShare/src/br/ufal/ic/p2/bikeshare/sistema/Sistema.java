@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.sistema;
 
+import br.ufal.ic.p2.bikeshare.persistencia.ArquivoConfiguracao;
 import br.ufal.ic.p2.bikeshare.persistencia.ArquivoEstado;
 import br.ufal.ic.p2.bikeshare.persistencia.Serializador;
 import br.ufal.ic.p2.bikeshare.servico.aluguel.AluguelService;
@@ -20,8 +21,10 @@ import java.util.function.Supplier;
 public class Sistema {
 
     private static final Path ARQUIVO_PADRAO = Path.of("bikeshare_data.ser");
+    private static final Path ARQUIVO_CONFIGURACAO = Path.of("bikeshare.properties");
 
     private final ArquivoEstado arquivo = new ArquivoEstado(ARQUIVO_PADRAO);
+    private final Configuracao configuracao;
     private final EstadoSistema estado;
     private final UsuarioService usuarios;
     private final AlteracaoUsuarioService alteracoes;
@@ -31,18 +34,19 @@ public class Sistema {
     private final DevolucaoService devolucoes;
 
     public Sistema() {
-        estado = arquivo.carregar().orElseGet(EstadoSistema::new);
+        configuracao = new Configuracao(ArquivoConfiguracao.carregar(ARQUIVO_CONFIGURACAO));
+        estado = arquivo.carregar().orElseGet(() -> new EstadoSistema(configuracao));
         usuarios = new UsuarioService(estado);
         alteracoes = new AlteracaoUsuarioService(estado, usuarios);
-        estacoes = new EstacaoService(estado);
+        estacoes = new EstacaoService(estado, configuracao);
         bicicletas = new BicicletaService(estado, estacoes);
-        alugueis = new AluguelService(estado, usuarios, estacoes, bicicletas);
-        devolucoes = new DevolucaoService(estado, alugueis, usuarios, estacoes, bicicletas);
+        alugueis = new AluguelService(estado, configuracao, usuarios, estacoes, bicicletas);
+        devolucoes = new DevolucaoService(configuracao, alugueis, usuarios, estacoes, bicicletas);
     }
 
     /** Executa uma operacao que altera o estado e devolve o seu resultado. */
     public <T> T executar(Supplier<T> operacao) {
-        EstadoSistema antes = Serializador.copiar(estado);
+        EstadoSistema antes = Serializador.copiar(estado, EstadoSistema.class);
         try {
             return operacao.get();
         } catch (RuntimeException erro) {
@@ -60,7 +64,7 @@ public class Sistema {
     }
 
     public void zerar() {
-        executarAcao(estado::zerar);
+        executarAcao(() -> estado.zerar(configuracao));
     }
 
     public void encerrar() {

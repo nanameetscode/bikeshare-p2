@@ -1,6 +1,6 @@
 package br.ufal.ic.p2.bikeshare;
 
-import br.ufal.ic.p2.bikeshare.modelo.usuario.DadosUsuario;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.OperacaoNaoImplementadaException;
 import br.ufal.ic.p2.bikeshare.sistema.Sistema;
 
 /**
@@ -9,8 +9,6 @@ import br.ufal.ic.p2.bikeshare.sistema.Sistema;
  * o estado passam por {@code sistema.executar} ou {@code executarAcao}; consultas vao direto ao servico.
  */
 public class Facade {
-
-    private static final String AINDA_NAO_IMPLEMENTADO = "Ainda não implementado.";
 
     private final Sistema sistema = new Sistema();
 
@@ -29,13 +27,13 @@ public class Facade {
     public String criarUsuario(String nome, String email, String senha, String tipo, String cpf,
                                 String plano, String mensalidade) {
         return sistema.executar(() -> sistema.usuarios().criarPessoaFisica(
-                new DadosUsuario(nome, email, senha), tipo, cpf, plano, mensalidade));
+                nome, email, senha, tipo, cpf, plano, mensalidade));
     }
 
     public String criarUsuario(String nome, String email, String senha, String tipo, String cnpj,
                                 String razaoSocial, String plano, String mensalidade) {
         return sistema.executar(() -> sistema.usuarios().criarPessoaJuridica(
-                new DadosUsuario(nome, email, senha), tipo, cnpj, razaoSocial, plano, mensalidade));
+                nome, email, senha, tipo, cnpj, razaoSocial, plano, mensalidade));
     }
 
     // =====================================================================
@@ -139,11 +137,11 @@ public class Facade {
     // =====================================================================
 
     public String getHistoricoAlugueis(String usuario) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     public String getHistoricoAlugueis(String usuario, String atributo) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     public String getAtributoAluguel(String aluguel, String atributo) {
@@ -155,7 +153,7 @@ public class Facade {
     // =====================================================================
 
     public String criarPlano(String nome, String franquiaMinutos, String valorMinutoExcedente, String mensalidade) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     // =====================================================================
@@ -163,7 +161,7 @@ public class Facade {
     // =====================================================================
 
     public void lancaPenalidade(String usuario, String tipo, String valor, String motivo) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     // =====================================================================
@@ -171,11 +169,11 @@ public class Facade {
     // =====================================================================
 
     public void lancaDefeito(String bicicleta, String descricao) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     public void concluiManutencao(String bicicleta) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     // =====================================================================
@@ -183,7 +181,7 @@ public class Facade {
     // =====================================================================
 
     public String getTotalFaturado(String dataInicial, String dataFinal) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     // =====================================================================
@@ -191,11 +189,11 @@ public class Facade {
     // =====================================================================
 
     public void undo() {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     public void redo() {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        throw new OperacaoNaoImplementadaException();
     }
 
     // =====================================================================

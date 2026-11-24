@@ -18,19 +18,18 @@ public class EstadoSistema implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Configuracao configuracao;
     private CatalogoPlanos planos;
     private Cadastro<Usuario> usuarios;
     private Cadastro<Estacao> estacoes;
     private Cadastro<Bicicleta> bicicletas;
     private Cadastro<Aluguel> alugueis;
 
-    public EstadoSistema() {
-        zerar();
+    public EstadoSistema(Configuracao configuracao) {
+        zerar(configuracao);
     }
 
-    public final void zerar() {
-        configuracao = new Configuracao();
+    /** Volta ao estado inicial: sem cadastros, contadores zerados e so os planos padrao. */
+    public final void zerar(Configuracao configuracao) {
         planos = criarPlanosPadrao(configuracao);
         usuarios = new Cadastro<>("U");
         estacoes = new Cadastro<>("E");
@@ -38,8 +37,8 @@ public class EstadoSistema implements Serializable {
         alugueis = new Cadastro<>("A");
     }
 
+    /** Substitui o conteudo atual pelo de uma copia; todo campo novo tem que entrar aqui. */
     public void restaurar(EstadoSistema outro) {
-        configuracao = outro.configuracao;
         planos = outro.planos;
         usuarios = outro.usuarios;
         estacoes = outro.estacoes;
@@ -53,10 +52,6 @@ public class EstadoSistema implements Serializable {
         catalogo.adicionar(new PlanoMensal("assinante", cfg.getFranquiaMinutosAssinante(),
                 cfg.getTarifaExcedenteAssinante(), cfg.getMensalidadePadraoAssinante()));
         return catalogo;
-    }
-
-    public Configuracao getConfiguracao() {
-        return configuracao;
     }
 
     public CatalogoPlanos getPlanos() {

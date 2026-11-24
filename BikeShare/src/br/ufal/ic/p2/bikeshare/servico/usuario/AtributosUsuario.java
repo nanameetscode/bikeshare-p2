@@ -22,9 +22,7 @@ final class AtributosUsuario {
             case "senha" -> usuario.getSenha();
             case "tipo" -> usuario.getTipo();
             case "estado" -> usuario.getEstado().getRotulo();
-            case "cpf" -> usuario.getCpf();
-            case "cnpj" -> usuario.getCnpj();
-            case "razaoSocial" -> usuario.getRazaoSocial();
+            case "cpf", "cnpj", "razaoSocial" -> usuario.getDocumento(nome);
             case "aluguelAtivo" -> usuario.getAluguelAtivo().orElse("nenhum");
             default -> lerDadoFinanceiro(usuario, nome);
         };
@@ -36,10 +34,8 @@ final class AtributosUsuario {
             case "mensalidade" -> Formato.dinheiro(usuario.getAssinatura().getMensalidade());
             case "totalPendencias" -> Formato.dinheiro(usuario.getTotalPendencias());
             case "metodoPagamento" -> usuario.getMetodoPagamento().getTipo();
-            case "numeroCartao" -> usuario.getMetodoPagamento().getNumeroCartao();
-            case "validadeCartao" -> usuario.getMetodoPagamento().getValidadeCartao();
-            case "chavePix" -> usuario.getMetodoPagamento().getChavePix();
-            case "saldo" -> Formato.dinheiro(usuario.getSaldo());
+            case "numeroCartao", "validadeCartao", "chavePix" -> usuario.getMetodoPagamento().getDado(atributo);
+            case "saldo" -> Formato.dinheiro(usuario.getMetodoPagamento().getSaldo());
             default -> throw new AtributoInexistenteException();
         };
     }

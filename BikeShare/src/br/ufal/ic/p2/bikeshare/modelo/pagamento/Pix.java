@@ -20,7 +20,10 @@ public class Pix extends MetodoPagamento {
     }
 
     @Override
-    public String getChavePix() {
-        return chave;
+    public String getDado(String atributo) {
+        if (DadoPagamento.CHAVE_PIX.getAtributo().equals(atributo)) {
+            return chave;
+        }
+        return super.getDado(atributo);
     }
 }

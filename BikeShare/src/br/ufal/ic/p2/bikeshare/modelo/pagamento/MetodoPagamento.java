@@ -4,42 +4,36 @@ import br.ufal.ic.p2.bikeshare.excecao.pagamento.MetodoPagamentoIncompativelExce
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
- * Forma como o usuario paga as corridas. Por padrao nenhum dado especifico existe;
- * cada subclasse sobrescreve so os dados que realmente possui.
+ * Forma como o usuario paga as corridas. Cada subclasse decide se autoriza a retirada,
+ * como cobra a corrida e quais dados proprios expoe.
  */
 public abstract class MetodoPagamento implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static final String NAO_USA_CARTAO = "Usuario nao usa cartao.";
-    private static final String NAO_USA_PIX = "Usuario nao usa pix.";
     private static final String NAO_USA_SALDO = "Usuario nao usa saldo pre-carregado.";
 
     /** Nome do metodo no formato dos testes (ex.: {@code pix}). */
     public abstract String getTipo();
 
-    public String getNumeroCartao() {
-        throw new MetodoPagamentoIncompativelException(NAO_USA_CARTAO);
+    /** Dado proprio do metodo, como o numero do cartao ou a chave pix. */
+    public String getDado(String atributo) {
+        throw DadoPagamento.erroPara(atributo);
     }
 
-    public String getValidadeCartao() {
-        throw new MetodoPagamentoIncompativelException(NAO_USA_CARTAO);
+    public void autorizarRetirada(LocalDateTime data) {
     }
 
-    public String getChavePix() {
-        throw new MetodoPagamentoIncompativelException(NAO_USA_PIX);
+    public void cobrar(BigDecimal valor) {
     }
 
-    public void autorizarRetirada(BigDecimal saldo) {
+    public BigDecimal getSaldo() {
+        throw new MetodoPagamentoIncompativelException(NAO_USA_SALDO);
     }
 
-    /** Devolve o saldo da conta depois de pagar o valor; cartao e pix nao mexem no saldo. */
-    public BigDecimal cobrar(BigDecimal saldo, BigDecimal valor) {
-        return saldo;
-    }
-
-    public void exigirSaldoPreCarregado() {
+    public void recarregar(BigDecimal valor) {
         throw new MetodoPagamentoIncompativelException(NAO_USA_SALDO);
     }
 }

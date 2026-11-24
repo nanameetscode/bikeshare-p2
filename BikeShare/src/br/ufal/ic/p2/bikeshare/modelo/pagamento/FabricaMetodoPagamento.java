@@ -8,9 +8,10 @@ public final class FabricaMetodoPagamento {
     private FabricaMetodoPagamento() {
     }
 
-    public static MetodoPagamento saldoPreCarregado(String tipo) {
+    /** Devolve a carteira do proprio usuario, que guarda o saldo ja recarregado. */
+    public static MetodoPagamento saldoPreCarregado(String tipo, SaldoPreCarregado carteira) {
         exigirTipo(tipo, SaldoPreCarregado.TIPO);
-        return new SaldoPreCarregado();
+        return carteira;
     }
 
     public static MetodoPagamento pix(String tipo, String chave) {

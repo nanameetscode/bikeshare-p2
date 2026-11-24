@@ -48,7 +48,8 @@ public class BicicletaService {
     }
 
     public String getAtributo(String id, String atributo) {
-        return AtributosBicicleta.ler(buscar(id), atributo);
+        Bicicleta bicicleta = buscar(id);
+        return AtributosBicicleta.ler(bicicleta, atributo, estacoes.ondeEsta(bicicleta));
     }
 
     public String getEstado(String id) {

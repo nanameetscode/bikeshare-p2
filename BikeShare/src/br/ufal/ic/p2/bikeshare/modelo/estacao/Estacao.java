@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.modelo.estacao;
 
+import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaJaExisteException;
 import br.ufal.ic.p2.bikeshare.excecao.bicicleta.OperacaoBicicletaInvalidaException;
 import br.ufal.ic.p2.bikeshare.excecao.estacao.EstacaoSemVagaException;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
@@ -9,7 +10,10 @@ import br.ufal.ic.p2.bikeshare.util.Validador;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-/** Ponto de retirada e devolucao, com um numero fixo de vagas. */
+/**
+ * Ponto de retirada e devolucao, com um numero fixo de vagas. E a unica fonte
+ * de verdade sobre quais bicicletas estao em cada estacao.
+ */
 public class Estacao implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -20,37 +24,38 @@ public class Estacao implements Serializable {
     private final int capacidade;
     private final ArrayList<Bicicleta> bicicletas = new ArrayList<>();
 
-    public Estacao(String id, String nome, String endereco, int capacidade) {
-        this.id = id;
-        this.nome = validarNome(nome);
-        this.endereco = validarEndereco(endereco);
+    /** Valida os dados na ordem nome, endereco e capacidade (informada como texto). */
+    public Estacao(String id, String nome, String endereco, String capacidade) {
+        this.id = Validador.obrigatorio(id, "Identificacao da estacao nao pode ser nula.");
+        this.nome = Validador.obrigatorio(nome, "Nome nao pode ser nulo.");
+        this.endereco = Validador.obrigatorio(endereco, "Endereco nao pode ser nulo.");
         this.capacidade = validarCapacidade(capacidade);
     }
 
-    public static String validarNome(String nome) {
-        return Validador.obrigatorio(nome, "Nome nao pode ser nulo.");
-    }
-
-    public static String validarEndereco(String endereco) {
-        return Validador.obrigatorio(endereco, "Endereco nao pode ser nulo.");
-    }
-
-    public static int validarCapacidade(int capacidade) {
-        if (capacidade <= 0) {
+    private static int validarCapacidade(String capacidade) {
+        int vagas = Validador.inteiro(capacidade,
+                "Capacidade nao pode ser nula.", "Capacidade deve ser numerica.");
+        if (vagas <= 0) {
             throw new ValorInvalidoException("Capacidade deve ser positiva.");
         }
-        return capacidade;
+        return vagas;
     }
 
     public void receber(Bicicleta bicicleta) {
+        if (contem(bicicleta)) {
+            throw new BicicletaJaExisteException();
+        }
         exigirVaga("Estacao sem vagas disponiveis.");
         bicicletas.add(bicicleta);
-        bicicleta.estacionar(id);
     }
 
     public void liberar(Bicicleta bicicleta) {
+        exigirPresenca(bicicleta);
         bicicletas.remove(bicicleta);
-        bicicleta.sairDaEstacao();
+    }
+
+    public boolean contem(Bicicleta bicicleta) {
+        return bicicletas.contains(bicicleta);
     }
 
     public void exigirVaga(String mensagem) {
@@ -60,7 +65,7 @@ public class Estacao implements Serializable {
     }
 
     public void exigirPresenca(Bicicleta bicicleta) {
-        if (!bicicletas.contains(bicicleta)) {
+        if (!contem(bicicleta)) {
             throw new OperacaoBicicletaInvalidaException("Bicicleta nao esta nesta estacao.");
         }
     }

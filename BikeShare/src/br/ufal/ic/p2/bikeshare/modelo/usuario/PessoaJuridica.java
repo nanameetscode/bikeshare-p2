@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
+import br.ufal.ic.p2.bikeshare.util.Validador;
 
 /** Usuario identificado por CNPJ e razao social. */
 public class PessoaJuridica extends Usuario {
@@ -14,8 +15,8 @@ public class PessoaJuridica extends Usuario {
     public PessoaJuridica(String id, DadosUsuario dados, Assinatura assinatura,
                           String cnpj, String razaoSocial) {
         super(id, dados, assinatura);
-        this.cnpj = cnpj;
-        this.razaoSocial = razaoSocial;
+        this.cnpj = Validador.obrigatorio(cnpj, "CNPJ nao pode ser nulo.");
+        this.razaoSocial = Validador.obrigatorio(razaoSocial, "Razao social nao pode ser nula.");
     }
 
     @Override
@@ -24,12 +25,13 @@ public class PessoaJuridica extends Usuario {
     }
 
     @Override
-    public String getCnpj() {
-        return cnpj;
-    }
-
-    @Override
-    public String getRazaoSocial() {
-        return razaoSocial;
+    public String getDocumento(String atributo) {
+        if (DocumentoUsuario.CNPJ.getAtributo().equals(atributo)) {
+            return cnpj;
+        }
+        if (DocumentoUsuario.RAZAO_SOCIAL.getAtributo().equals(atributo)) {
+            return razaoSocial;
+        }
+        return super.getDocumento(atributo);
     }
 }

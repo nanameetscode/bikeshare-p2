@@ -1,66 +1,59 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
-import br.ufal.ic.p2.bikeshare.excecao.usuario.TipoUsuarioIncompativelException;
+import br.ufal.ic.p2.bikeshare.excecao.plano.PlanoInvalidoException;
 import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioComAluguelException;
-import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioInadimplenteException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.modelo.pagamento.FabricaMetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.MetodoPagamento;
+import br.ufal.ic.p2.bikeshare.modelo.pagamento.SaldoPreCarregado;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.SemMetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
- * Ciclista cadastrado. Guarda o que e comum a pessoa fisica e juridica;
- * o documento fica em cada subclasse.
+ * Ciclista cadastrado. Guarda o que e comum a pessoa fisica e juridica e recusa
+ * qualquer dado invalido; o documento de identificacao fica em cada subclasse.
  */
 public abstract class Usuario implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static final String NAO_EH_FISICA = "Usuario nao eh pessoa fisica.";
-    private static final String NAO_EH_JURIDICA = "Usuario nao eh pessoa juridica.";
 
     private final String id;
+    private final SaldoPreCarregado carteira = new SaldoPreCarregado();
     private String nome;
     private String email;
     private String senha;
     private Assinatura assinatura;
     private MetodoPagamento metodoPagamento = new SemMetodoPagamento();
     private EstadoUsuario estado = EstadoUsuario.ATIVO;
-    private BigDecimal saldo = BigDecimal.ZERO;
     private BigDecimal totalPendencias = BigDecimal.ZERO;
     private String aluguelAtivo;
 
     protected Usuario(String id, DadosUsuario dados, Assinatura assinatura) {
-        this.id = id;
-        this.nome = validarNome(dados.nome());
+        this.id = Validador.obrigatorio(id, "Identificacao do usuario nao pode ser nula.");
+        this.nome = Validador.obrigatorio(dados.nome(), "Nome nao pode ser nulo.");
         this.email = Validador.email(dados.email());
-        this.senha = validarSenha(dados.senha());
-        this.assinatura = assinatura;
+        this.senha = Validador.obrigatorio(dados.senha(), "Senha nao pode ser nula.");
+        this.assinatura = exigirAssinatura(assinatura);
     }
 
-    public static String validarNome(String nome) {
-        return Validador.obrigatorio(nome, "Nome nao pode ser nulo.");
-    }
-
-    public static String validarSenha(String senha) {
-        return Validador.obrigatorio(senha, "Senha nao pode ser nula.");
+    private static Assinatura exigirAssinatura(Assinatura assinatura) {
+        if (assinatura == null) {
+            throw new PlanoInvalidoException();
+        }
+        return assinatura;
     }
 
     public abstract String getTipo();
 
-    public String getCpf() {
-        throw new TipoUsuarioIncompativelException(NAO_EH_FISICA);
-    }
-
-    public String getCnpj() {
-        throw new TipoUsuarioIncompativelException(NAO_EH_JURIDICA);
-    }
-
-    public String getRazaoSocial() {
-        throw new TipoUsuarioIncompativelException(NAO_EH_JURIDICA);
+    /** Documento proprio do tipo de usuario (cpf, cnpj ou razao social). */
+    public String getDocumento(String atributo) {
+        throw DocumentoUsuario.erroPara(atributo);
     }
 
     public boolean temEmail(String outroEmail) {
@@ -68,7 +61,7 @@ public abstract class Usuario implements Serializable {
     }
 
     public void alterarNome(String novoNome) {
-        nome = validarNome(novoNome);
+        nome = Validador.obrigatorio(novoNome, "Nome nao pode ser nulo.");
     }
 
     public void alterarEmail(String novoEmail) {
@@ -76,48 +69,60 @@ public abstract class Usuario implements Serializable {
     }
 
     public void alterarSenha(String novaSenha) {
-        senha = validarSenha(novaSenha);
+        senha = Validador.obrigatorio(novaSenha, "Senha nao pode ser nula.");
     }
 
     public void alterarAssinatura(Assinatura novaAssinatura) {
-        assinatura = novaAssinatura;
+        assinatura = exigirAssinatura(novaAssinatura);
     }
 
     public void alterarMetodoPagamento(MetodoPagamento novoMetodo) {
+        if (novoMetodo == null) {
+            throw new ValorInvalidoException("Valor de metodo de pagamento invalido.");
+        }
         metodoPagamento = novoMetodo;
     }
 
+    public void usarSaldoPreCarregado(String tipo) {
+        alterarMetodoPagamento(FabricaMetodoPagamento.saldoPreCarregado(tipo, carteira));
+    }
+
     public void recarregarSaldo(BigDecimal valor) {
-        metodoPagamento.exigirSaldoPreCarregado();
-        saldo = saldo.add(valor);
+        metodoPagamento.recarregar(valor);
+    }
+
+    public void exigirSemAluguel(String mensagem) {
+        if (aluguelAtivo != null) {
+            throw new UsuarioComAluguelException(mensagem);
+        }
     }
 
     public void exigirLiberadoParaRetirada() {
-        if (estado == EstadoUsuario.INADIMPLENTE) {
-            throw new UsuarioInadimplenteException();
-        }
-        if (aluguelAtivo != null) {
-            throw new UsuarioComAluguelException("Usuario ja possui um aluguel em andamento.");
-        }
+        estado.exigirAdimplente();
+        exigirSemAluguel("Usuario ja possui um aluguel em andamento.");
     }
 
-    public void autorizarRetirada() {
-        metodoPagamento.autorizarRetirada(saldo);
-    }
-
-    public void pagar(BigDecimal valor) {
-        saldo = metodoPagamento.cobrar(saldo, valor);
+    public void autorizarRetirada(LocalDateTime data) {
+        metodoPagamento.autorizarRetirada(data);
     }
 
     public void iniciarAluguel(String idAluguel) {
-        aluguelAtivo = idAluguel;
+        exigirLiberadoParaRetirada();
+        aluguelAtivo = Validador.obrigatorio(idAluguel, "Identificacao do aluguel nao pode ser nula.");
     }
 
     public void encerrarAluguel() {
         aluguelAtivo = null;
     }
 
+    public void pagar(BigDecimal valor) {
+        metodoPagamento.cobrar(valor);
+    }
+
     public void registrarPenalidade(BigDecimal valor) {
+        if (valor.signum() <= 0) {
+            throw new ValorInvalidoException("Valor deve ser positivo.");
+        }
         totalPendencias = totalPendencias.add(valor);
         estado = EstadoUsuario.INADIMPLENTE;
     }
@@ -136,11 +141,6 @@ public abstract class Usuario implements Serializable {
 
     public String getSenha() {
         return senha;
-    }
-
-    public BigDecimal getSaldo() {
-        metodoPagamento.exigirSaldoPreCarregado();
-        return saldo;
     }
 
     public BigDecimal getTotalPendencias() {

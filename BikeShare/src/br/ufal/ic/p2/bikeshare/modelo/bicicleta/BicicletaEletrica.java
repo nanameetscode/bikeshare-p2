@@ -8,14 +8,16 @@ import java.math.BigDecimal;
 public class BicicletaEletrica extends Bicicleta {
 
     private static final long serialVersionUID = 1L;
+    private static final int CARGA_MINIMA = 0;
     private static final int CARGA_MAXIMA = 100;
 
     private final int nivelBateria;
 
     public BicicletaEletrica(String id, int nivelBateria) {
         super(id);
-        if (nivelBateria < 0 || nivelBateria > CARGA_MAXIMA) {
-            throw new ValorInvalidoException("Nivel de bateria deve estar entre 0 e 100.");
+        if (nivelBateria < CARGA_MINIMA || nivelBateria > CARGA_MAXIMA) {
+            throw new ValorInvalidoException("Nivel de bateria deve estar entre "
+                    + CARGA_MINIMA + " e " + CARGA_MAXIMA + ".");
         }
         this.nivelBateria = nivelBateria;
     }

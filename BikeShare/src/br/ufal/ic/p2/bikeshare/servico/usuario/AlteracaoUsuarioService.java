@@ -30,9 +30,8 @@ public class AlteracaoUsuarioService {
             case "email" -> alterarEmail(usuario, valor);
             case "senha" -> usuario.alterarSenha(valor);
             case "plano" -> alterarPlano(usuario, valor);
-            case "saldo" -> recarregarSaldo(usuario, valor);
-            case METODO_PAGAMENTO -> usuario.alterarMetodoPagamento(
-                    FabricaMetodoPagamento.saldoPreCarregado(valor));
+            case "saldo" -> usuario.recarregarSaldo(Validador.valor(valor));
+            case METODO_PAGAMENTO -> usuario.usarSaldoPreCarregado(valor);
             default -> throw new AtributoNaoAlteravelException();
         }
     }
@@ -54,8 +53,8 @@ public class AlteracaoUsuarioService {
     }
 
     private void alterarEmail(Usuario usuario, String email) {
-        usuarios.exigirEmailLivre(Validador.email(email), usuario);
         usuario.alterarEmail(email);
+        usuarios.exigirEmailUnico(usuario);
     }
 
     private void alterarPlano(Usuario usuario, String nomePlano) {
@@ -63,10 +62,5 @@ public class AlteracaoUsuarioService {
         if (!novo.getNome().equals(usuario.getAssinatura().getPlano().getNome())) {
             usuario.alterarAssinatura(novo.assinaturaPadrao());
         }
-    }
-
-    private static void recarregarSaldo(Usuario usuario, String valor) {
-        usuario.getMetodoPagamento().exigirSaldoPreCarregado();
-        usuario.recarregarSaldo(Validador.valorPositivo(valor));
     }
 }

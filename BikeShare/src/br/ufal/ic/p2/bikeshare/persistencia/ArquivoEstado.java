@@ -23,7 +23,7 @@ public class ArquivoEstado {
             return Optional.empty();
         }
         try {
-            return Optional.of(Serializador.deBytes(Files.readAllBytes(arquivo)));
+            return Optional.of(Serializador.deBytes(Files.readAllBytes(arquivo), EstadoSistema.class));
         } catch (IOException e) {
             throw new PersistenciaException("Nao foi possivel ler o estado do sistema.", e);
         }

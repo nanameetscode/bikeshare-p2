@@ -9,6 +9,7 @@ import br.ufal.ic.p2.bikeshare.servico.bicicleta.BicicletaService;
 import br.ufal.ic.p2.bikeshare.servico.estacao.EstacaoService;
 import br.ufal.ic.p2.bikeshare.servico.usuario.UsuarioService;
 import br.ufal.ic.p2.bikeshare.sistema.Cadastro;
+import br.ufal.ic.p2.bikeshare.sistema.Configuracao;
 import br.ufal.ic.p2.bikeshare.sistema.EstadoSistema;
 import br.ufal.ic.p2.bikeshare.util.Datas;
 
@@ -18,13 +19,15 @@ import java.time.LocalDateTime;
 public class AluguelService {
 
     private final EstadoSistema estado;
+    private final Configuracao configuracao;
     private final UsuarioService usuarios;
     private final EstacaoService estacoes;
     private final BicicletaService bicicletas;
 
-    public AluguelService(EstadoSistema estado, UsuarioService usuarios,
+    public AluguelService(EstadoSistema estado, Configuracao configuracao, UsuarioService usuarios,
                           EstacaoService estacoes, BicicletaService bicicletas) {
         this.estado = estado;
+        this.configuracao = configuracao;
         this.usuarios = usuarios;
         this.estacoes = estacoes;
         this.bicicletas = bicicletas;
@@ -40,7 +43,7 @@ public class AluguelService {
         Estacao estacao = estacoes.buscar(idEstacao);
         Bicicleta bicicleta = bicicletas.buscar(idBicicleta);
         LocalDateTime inicio = Datas.ler(data);
-        validarRetirada(usuario, estacao, bicicleta);
+        validarRetirada(usuario, estacao, bicicleta, inicio);
         Aluguel aluguel = new Aluguel(alugueis().gerarId(), usuario.getId(),
                 bicicleta.getId(), estacao.getId(), inicio);
         alugueis().adicionar(aluguel.getId(), aluguel);
@@ -59,12 +62,12 @@ public class AluguelService {
         return AtributosAluguel.ler(buscar(id), atributo);
     }
 
-    private void validarRetirada(Usuario usuario, Estacao estacao, Bicicleta bicicleta) {
+    private void validarRetirada(Usuario usuario, Estacao estacao, Bicicleta bicicleta, LocalDateTime inicio) {
         usuario.exigirLiberadoParaRetirada();
         estacao.exigirPresenca(bicicleta);
         bicicleta.exigirDisponivel();
-        bicicleta.exigirBateria(estado.getConfiguracao().getNivelMinimoBateria());
-        usuario.autorizarRetirada();
+        bicicleta.exigirBateria(configuracao.getNivelMinimoBateria());
+        usuario.autorizarRetirada(inicio);
     }
 
     private Cadastro<Aluguel> alugueis() {

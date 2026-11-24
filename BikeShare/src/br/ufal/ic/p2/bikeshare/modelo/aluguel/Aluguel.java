@@ -1,6 +1,8 @@
 package br.ufal.ic.p2.bikeshare.modelo.aluguel;
 
 import br.ufal.ic.p2.bikeshare.excecao.aluguel.EstadoAluguelInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoNuloException;
+import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -26,11 +28,18 @@ public class Aluguel implements Serializable {
     private BigDecimal valorCobrado;
 
     public Aluguel(String id, String usuario, String bicicleta, String estacaoOrigem, LocalDateTime inicio) {
-        this.id = id;
-        this.usuario = usuario;
-        this.bicicleta = bicicleta;
-        this.estacaoOrigem = estacaoOrigem;
-        this.inicio = inicio;
+        this.id = Validador.obrigatorio(id, "Identificacao do aluguel nao pode ser nula.");
+        this.usuario = Validador.obrigatorio(usuario, "Identificacao do usuario nao pode ser nula.");
+        this.bicicleta = Validador.obrigatorio(bicicleta, "Identificacao da bicicleta nao pode ser nula.");
+        this.estacaoOrigem = Validador.obrigatorio(estacaoOrigem, "Identificacao da estacao nao pode ser nula.");
+        this.inicio = exigirData(inicio);
+    }
+
+    private static LocalDateTime exigirData(LocalDateTime data) {
+        if (data == null) {
+            throw new CampoNuloException("Data nao pode ser nula.");
+        }
+        return data;
     }
 
     public long minutosAte(LocalDateTime momento) {
@@ -46,10 +55,11 @@ public class Aluguel implements Serializable {
 
     public void encerrar(EstadoAluguel novoEstado, String destino, LocalDateTime momento, BigDecimal valor) {
         estado.exigirEmAndamento();
-        estado = novoEstado;
-        estacaoDestino = destino;
+        minutosAte(exigirData(momento));
+        estacaoDestino = Validador.obrigatorio(destino, "Identificacao da estacao nao pode ser nula.");
+        valorCobrado = Validador.naoNegativo(valor, "Valor deve ser positivo.");
         fim = momento;
-        valorCobrado = valor;
+        estado = novoEstado;
     }
 
     public void exigirEmAndamento() {
