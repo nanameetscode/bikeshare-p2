@@ -3,6 +3,7 @@ package br.ufal.ic.p2.bikeshare.modelo.bicicleta;
 import br.ufal.ic.p2.bikeshare.excecao.bicicleta.OperacaoBicicletaInvalidaException;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
@@ -31,6 +32,10 @@ public abstract class Bicicleta implements Serializable {
         return true;
     }
 
+    public BigDecimal calcularAdicional(long minutos, BigDecimal adicionalPorMinuto) {
+        return BigDecimal.ZERO;
+    }
+
     public void exigirBateria(int nivelMinimo) {
         if (!temBateriaSuficiente(nivelMinimo)) {
             throw new OperacaoBicicletaInvalidaException("Nivel de bateria insuficiente.");
@@ -40,6 +45,14 @@ public abstract class Bicicleta implements Serializable {
     public void retirar() {
         exigirDisponivel();
         estado = EstadoBicicleta.EM_USO;
+    }
+
+    public void devolver() {
+        estado = EstadoBicicleta.DISPONIVEL;
+    }
+
+    public void enviarParaManutencao() {
+        estado = EstadoBicicleta.EM_MANUTENCAO;
     }
 
     public boolean podeSerRetirada(int nivelMinimo) {

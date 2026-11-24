@@ -26,4 +26,12 @@ public class SaldoPreCarregado extends MetodoPagamento {
             throw new PagamentoRecusadoException(SALDO_INSUFICIENTE);
         }
     }
+
+    @Override
+    public BigDecimal cobrar(BigDecimal saldo, BigDecimal valor) {
+        if (valor.compareTo(saldo) > 0) {
+            throw new PagamentoRecusadoException(SALDO_INSUFICIENTE);
+        }
+        return saldo.subtract(valor);
+    }
 }

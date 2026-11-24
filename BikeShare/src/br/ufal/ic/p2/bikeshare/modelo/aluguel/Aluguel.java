@@ -1,7 +1,10 @@
 package br.ufal.ic.p2.bikeshare.modelo.aluguel;
 
+import br.ufal.ic.p2.bikeshare.excecao.aluguel.EstadoAluguelInvalidoException;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
@@ -28,6 +31,29 @@ public class Aluguel implements Serializable {
         this.bicicleta = bicicleta;
         this.estacaoOrigem = estacaoOrigem;
         this.inicio = inicio;
+    }
+
+    public long minutosAte(LocalDateTime momento) {
+        if (momento.isBefore(inicio)) {
+            throw new EstadoAluguelInvalidoException("Data de devolucao anterior a data de retirada.");
+        }
+        return Duration.between(inicio, momento).toMinutes();
+    }
+
+    public boolean comecouEm(String estacao) {
+        return estacaoOrigem.equals(estacao);
+    }
+
+    public void encerrar(EstadoAluguel novoEstado, String destino, LocalDateTime momento, BigDecimal valor) {
+        estado.exigirEmAndamento();
+        estado = novoEstado;
+        estacaoDestino = destino;
+        fim = momento;
+        valorCobrado = valor;
+    }
+
+    public void exigirEmAndamento() {
+        estado.exigirEmAndamento();
     }
 
     public String getId() {

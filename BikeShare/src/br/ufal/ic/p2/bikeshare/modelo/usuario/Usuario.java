@@ -105,8 +105,21 @@ public abstract class Usuario implements Serializable {
         metodoPagamento.autorizarRetirada(saldo);
     }
 
+    public void pagar(BigDecimal valor) {
+        saldo = metodoPagamento.cobrar(saldo, valor);
+    }
+
     public void iniciarAluguel(String idAluguel) {
         aluguelAtivo = idAluguel;
+    }
+
+    public void encerrarAluguel() {
+        aluguelAtivo = null;
+    }
+
+    public void registrarPenalidade(BigDecimal valor) {
+        totalPendencias = totalPendencias.add(valor);
+        estado = EstadoUsuario.INADIMPLENTE;
     }
 
     public String getId() {

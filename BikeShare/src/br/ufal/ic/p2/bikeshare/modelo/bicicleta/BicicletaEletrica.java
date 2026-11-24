@@ -2,6 +2,8 @@ package br.ufal.ic.p2.bikeshare.modelo.bicicleta;
 
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
 
+import java.math.BigDecimal;
+
 /** Bicicleta com bateria: so pode ser retirada com carga acima do minimo configurado. */
 public class BicicletaEletrica extends Bicicleta {
 
@@ -31,5 +33,10 @@ public class BicicletaEletrica extends Bicicleta {
     @Override
     public boolean temBateriaSuficiente(int nivelMinimo) {
         return nivelBateria >= nivelMinimo;
+    }
+
+    @Override
+    public BigDecimal calcularAdicional(long minutos, BigDecimal adicionalPorMinuto) {
+        return adicionalPorMinuto.multiply(BigDecimal.valueOf(minutos));
     }
 }

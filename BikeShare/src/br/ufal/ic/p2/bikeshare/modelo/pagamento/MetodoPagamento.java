@@ -34,6 +34,11 @@ public abstract class MetodoPagamento implements Serializable {
     public void autorizarRetirada(BigDecimal saldo) {
     }
 
+    /** Devolve o saldo da conta depois de pagar o valor; cartao e pix nao mexem no saldo. */
+    public BigDecimal cobrar(BigDecimal saldo, BigDecimal valor) {
+        return saldo;
+    }
+
     public void exigirSaldoPreCarregado() {
         throw new MetodoPagamentoIncompativelException(NAO_USA_SALDO);
     }

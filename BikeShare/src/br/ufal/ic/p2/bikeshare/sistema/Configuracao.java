@@ -16,6 +16,26 @@ public class Configuracao implements Serializable {
     private final BigDecimal tarifaExcedenteAssinante = new BigDecimal("0.30");
     private final BigDecimal mensalidadePadraoAssinante = new BigDecimal("30");
     private final int nivelMinimoBateria = 15;
+    private final BigDecimal adicionalMinutoEletrica = new BigDecimal("0.20");
+    private final int minutosCarencia = 2;
+    private final int minutosMaximoAluguel = 24 * 60;
+    private final BigDecimal valorPenalidadeAtraso = new BigDecimal("10");
+
+    public BigDecimal getAdicionalMinutoEletrica() {
+        return adicionalMinutoEletrica;
+    }
+
+    public int getMinutosCarencia() {
+        return minutosCarencia;
+    }
+
+    public int getMinutosMaximoAluguel() {
+        return minutosMaximoAluguel;
+    }
+
+    public BigDecimal getValorPenalidadeAtraso() {
+        return valorPenalidadeAtraso;
+    }
 
     public int getNivelMinimoBateria() {
         return nivelMinimoBateria;

@@ -19,4 +19,9 @@ public class SemMetodoPagamento extends MetodoPagamento {
     public void autorizarRetirada(BigDecimal saldo) {
         throw new PagamentoRecusadoException(NAO_CADASTRADO);
     }
+
+    @Override
+    public BigDecimal cobrar(BigDecimal saldo, BigDecimal valor) {
+        throw new PagamentoRecusadoException(NAO_CADASTRADO);
+    }
 }
