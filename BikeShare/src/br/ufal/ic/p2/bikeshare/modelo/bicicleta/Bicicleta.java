@@ -31,6 +31,17 @@ public abstract class Bicicleta implements Serializable {
         return true;
     }
 
+    public void exigirBateria(int nivelMinimo) {
+        if (!temBateriaSuficiente(nivelMinimo)) {
+            throw new OperacaoBicicletaInvalidaException("Nivel de bateria insuficiente.");
+        }
+    }
+
+    public void retirar() {
+        exigirDisponivel();
+        estado = EstadoBicicleta.EM_USO;
+    }
+
     public boolean podeSerRetirada(int nivelMinimo) {
         return estado == EstadoBicicleta.DISPONIVEL && temBateriaSuficiente(nivelMinimo);
     }

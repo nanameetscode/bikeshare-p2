@@ -1,6 +1,8 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
 import br.ufal.ic.p2.bikeshare.excecao.usuario.TipoUsuarioIncompativelException;
+import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioComAluguelException;
+import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioInadimplenteException;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.MetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.SemMetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
@@ -88,6 +90,23 @@ public abstract class Usuario implements Serializable {
     public void recarregarSaldo(BigDecimal valor) {
         metodoPagamento.exigirSaldoPreCarregado();
         saldo = saldo.add(valor);
+    }
+
+    public void exigirLiberadoParaRetirada() {
+        if (estado == EstadoUsuario.INADIMPLENTE) {
+            throw new UsuarioInadimplenteException();
+        }
+        if (aluguelAtivo != null) {
+            throw new UsuarioComAluguelException("Usuario ja possui um aluguel em andamento.");
+        }
+    }
+
+    public void autorizarRetirada() {
+        metodoPagamento.autorizarRetirada(saldo);
+    }
+
+    public void iniciarAluguel(String idAluguel) {
+        aluguelAtivo = idAluguel;
     }
 
     public String getId() {

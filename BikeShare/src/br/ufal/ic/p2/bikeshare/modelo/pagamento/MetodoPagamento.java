@@ -3,6 +3,7 @@ package br.ufal.ic.p2.bikeshare.modelo.pagamento;
 import br.ufal.ic.p2.bikeshare.excecao.pagamento.MetodoPagamentoIncompativelException;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * Forma como o usuario paga as corridas. Por padrao nenhum dado especifico existe;
@@ -28,6 +29,9 @@ public abstract class MetodoPagamento implements Serializable {
 
     public String getChavePix() {
         throw new MetodoPagamentoIncompativelException(NAO_USA_PIX);
+    }
+
+    public void autorizarRetirada(BigDecimal saldo) {
     }
 
     public void exigirSaldoPreCarregado() {
