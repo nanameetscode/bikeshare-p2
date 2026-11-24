@@ -56,10 +56,13 @@ public abstract class Bicicleta implements Serializable {
     }
 
     public void devolver() {
+        estado.exigirEmUso();
         estado = EstadoBicicleta.DISPONIVEL;
     }
 
+    /** Devolvida depois do tempo maximo, a bicicleta vai para manutencao em vez de ficar disponivel. */
     public void enviarParaManutencao() {
+        estado.exigirEmUso();
         estado = EstadoBicicleta.EM_MANUTENCAO;
     }
 

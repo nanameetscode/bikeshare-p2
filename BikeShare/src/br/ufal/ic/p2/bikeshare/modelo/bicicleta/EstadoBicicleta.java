@@ -11,7 +11,11 @@ public enum EstadoBicicleta {
             return true;
         }
     },
-    EM_USO("emUso"),
+    EM_USO("emUso") {
+        @Override
+        public void exigirEmUso() {
+        }
+    },
     EM_MANUTENCAO("emManutencao");
 
     private final String rotulo;
@@ -28,6 +32,10 @@ public enum EstadoBicicleta {
         if (!estaDisponivel()) {
             throw new OperacaoBicicletaInvalidaException("Bicicleta nao esta disponivel.");
         }
+    }
+
+    public void exigirEmUso() {
+        throw new OperacaoBicicletaInvalidaException("Bicicleta nao esta em uso.");
     }
 
     public String getRotulo() {

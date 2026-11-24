@@ -6,6 +6,7 @@ import br.ufal.ic.p2.bikeshare.sistema.EstadoSistema;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 /** Unico ponto que le e grava o estado do sistema em disco (arquivo {@code .ser}). */
@@ -29,9 +30,12 @@ public class ArquivoEstado {
         }
     }
 
+    /** Grava primeiro num arquivo temporario: se falhar no meio, o arquivo anterior continua inteiro. */
     public void salvar(EstadoSistema estado) {
+        Path temporario = arquivo.resolveSibling(arquivo.getFileName() + ".tmp");
         try {
-            Files.write(arquivo, Serializador.paraBytes(estado));
+            Files.write(temporario, Serializador.paraBytes(estado));
+            Files.move(temporario, arquivo, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             throw new PersistenciaException("Nao foi possivel gravar o estado do sistema.", e);
         }

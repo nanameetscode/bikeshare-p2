@@ -53,11 +53,25 @@ public class Aluguel implements Serializable {
         return estacaoOrigem.equals(estacao);
     }
 
-    public void encerrar(EstadoAluguel novoEstado, String destino, LocalDateTime momento, BigDecimal valor) {
+    public void finalizar(String destino, LocalDateTime momento, BigDecimal valor) {
+        encerrar(EstadoAluguel.FINALIZADO, destino, momento, valor);
+    }
+
+    /** Devolucao na mesma estacao dentro da carencia: nada e cobrado. */
+    public void cancelar(String destino, LocalDateTime momento) {
+        encerrar(EstadoAluguel.CANCELADO, destino, momento, BigDecimal.ZERO);
+    }
+
+    /** Devolucao depois do tempo maximo: a tarifa nao e cobrada (o usuario recebe multa). */
+    public void expirar(String destino, LocalDateTime momento) {
+        encerrar(EstadoAluguel.EXPIRADO, destino, momento, BigDecimal.ZERO);
+    }
+
+    private void encerrar(EstadoAluguel novoEstado, String destino, LocalDateTime momento, BigDecimal valor) {
         estado.exigirEmAndamento();
         minutosAte(exigirData(momento));
         estacaoDestino = Validador.obrigatorio(destino, "Identificacao da estacao nao pode ser nula.");
-        valorCobrado = Validador.naoNegativo(valor, "Valor deve ser positivo.");
+        valorCobrado = Validador.naoNegativo(valor, "Valor nao pode ser negativo.");
         fim = momento;
         estado = novoEstado;
     }

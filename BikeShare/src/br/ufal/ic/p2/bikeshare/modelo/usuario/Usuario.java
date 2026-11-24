@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
+import br.ufal.ic.p2.bikeshare.excecao.aluguel.EstadoAluguelInvalidoException;
 import br.ufal.ic.p2.bikeshare.excecao.plano.PlanoInvalidoException;
 import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioComAluguelException;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
@@ -112,11 +113,14 @@ public abstract class Usuario implements Serializable {
     }
 
     public void encerrarAluguel() {
+        if (aluguelAtivo == null) {
+            throw new EstadoAluguelInvalidoException("Aluguel nao esta em andamento.");
+        }
         aluguelAtivo = null;
     }
 
     public void pagar(BigDecimal valor) {
-        metodoPagamento.cobrar(valor);
+        metodoPagamento.cobrar(Validador.naoNegativo(valor, "Valor nao pode ser negativo."));
     }
 
     public void registrarPenalidade(BigDecimal valor) {

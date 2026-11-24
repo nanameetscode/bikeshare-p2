@@ -45,6 +45,9 @@ public class SaldoPreCarregado extends MetodoPagamento {
 
     @Override
     public void cobrar(BigDecimal valor) {
+        if (valor.signum() < 0) {
+            throw new ValorInvalidoException("Valor nao pode ser negativo.");
+        }
         if (valor.compareTo(saldo) > 0) {
             throw new PagamentoRecusadoException(SALDO_INSUFICIENTE);
         }

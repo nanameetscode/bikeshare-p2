@@ -20,7 +20,7 @@ public class PlanoMensal extends Plano {
 
     @Override
     public Assinatura assinar(String mensalidadeInformada) {
-        BigDecimal mensalidade = Validador.decimal(mensalidadeInformada,
+        BigDecimal mensalidade = Validador.dinheiro(mensalidadeInformada,
                 "Mensalidade nao pode ser nula.", "Mensalidade deve ser numerica.");
         return new Assinatura(this, Validador.naoNegativo(mensalidade, MENSALIDADE_NEGATIVA));
     }

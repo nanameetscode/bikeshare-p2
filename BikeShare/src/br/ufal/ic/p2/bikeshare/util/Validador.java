@@ -48,9 +48,14 @@ public final class Validador {
         return new BigDecimal(texto.replace(',', '.'));
     }
 
+    /** Le um valor em dinheiro, ja arredondado para centavos. */
+    public static BigDecimal dinheiro(String valor, String mensagemNulo, String mensagemNaoNumerico) {
+        return Formato.centavos(decimal(valor, mensagemNulo, mensagemNaoNumerico));
+    }
+
     /** Le um valor em dinheiro informado pelo usuario (recarga, penalidade). */
     public static BigDecimal valor(String valor) {
-        return decimal(valor, "Valor nao pode ser nulo.", "Valor deve ser numerico.");
+        return dinheiro(valor, "Valor nao pode ser nulo.", "Valor deve ser numerico.");
     }
 
     public static BigDecimal naoNegativo(BigDecimal numero, String mensagem) {

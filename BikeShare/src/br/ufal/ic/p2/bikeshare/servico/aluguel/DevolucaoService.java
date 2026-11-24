@@ -1,7 +1,6 @@
 package br.ufal.ic.p2.bikeshare.servico.aluguel;
 
 import br.ufal.ic.p2.bikeshare.modelo.aluguel.Aluguel;
-import br.ufal.ic.p2.bikeshare.modelo.aluguel.EstadoAluguel;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
 import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
 import br.ufal.ic.p2.bikeshare.modelo.usuario.Usuario;
@@ -10,6 +9,7 @@ import br.ufal.ic.p2.bikeshare.servico.estacao.EstacaoService;
 import br.ufal.ic.p2.bikeshare.servico.usuario.UsuarioService;
 import br.ufal.ic.p2.bikeshare.sistema.Configuracao;
 import br.ufal.ic.p2.bikeshare.util.Datas;
+import br.ufal.ic.p2.bikeshare.util.Formato;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -47,7 +47,7 @@ public class DevolucaoService {
         if (minutos > cfg.getMinutosMaximoAluguel()) {
             expirar(aluguel, destino, fim, usuario, bicicleta);
         } else if (aluguel.comecouEm(destino.getId()) && minutos <= cfg.getMinutosCarencia()) {
-            aluguel.encerrar(EstadoAluguel.CANCELADO, destino.getId(), fim, BigDecimal.ZERO);
+            aluguel.cancelar(destino.getId(), fim);
             guardar(bicicleta, destino, usuario);
         } else {
             finalizar(aluguel, destino, fim, usuario, bicicleta, minutos);
@@ -55,7 +55,7 @@ public class DevolucaoService {
     }
 
     private void expirar(Aluguel aluguel, Estacao destino, LocalDateTime fim, Usuario usuario, Bicicleta bicicleta) {
-        aluguel.encerrar(EstadoAluguel.EXPIRADO, destino.getId(), fim, BigDecimal.ZERO);
+        aluguel.expirar(destino.getId(), fim);
         usuario.registrarPenalidade(cfg.getValorPenalidadeAtraso());
         bicicleta.enviarParaManutencao();
         destino.receber(bicicleta);
@@ -64,10 +64,10 @@ public class DevolucaoService {
 
     private void finalizar(Aluguel aluguel, Estacao destino, LocalDateTime fim,
                            Usuario usuario, Bicicleta bicicleta, long minutos) {
-        BigDecimal valor = usuario.getAssinatura().getPlano().calcularTarifa(minutos)
-                .add(bicicleta.calcularAdicional(minutos, cfg.getAdicionalMinutoEletrica()));
+        BigDecimal valor = Formato.centavos(usuario.getAssinatura().getPlano().calcularTarifa(minutos)
+                .add(bicicleta.calcularAdicional(minutos, cfg.getAdicionalMinutoEletrica())));
         usuario.pagar(valor);
-        aluguel.encerrar(EstadoAluguel.FINALIZADO, destino.getId(), fim, valor);
+        aluguel.finalizar(destino.getId(), fim, valor);
         guardar(bicicleta, destino, usuario);
     }
 
