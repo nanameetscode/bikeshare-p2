@@ -129,7 +129,7 @@ Outras garantias:
 - **Objetos sempre válidos**: a validação fica no próprio objeto, não no serviço. Usuários, estações, bicicletas, aluguéis, planos e métodos de pagamento recusam dados vazios ou fora do intervalo já no construtor; o saldo não aceita recarga negativa; o usuário não inicia um segundo aluguel; a estação não recebe a mesma bicicleta duas vezes nem além da capacidade.
 - **Uma única fonte de verdade**: a estação é quem sabe quais bicicletas estão nela; a bicicleta não guarda uma cópia dessa informação.
 - **Parâmetros configuráveis**: tarifas, franquia, mensalidade padrão, carência, tempo máximo, adicional da elétrica, bateria mínima e multa por atraso ficam em [`Configuracao`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/Configuracao.java), com os valores do enunciado como padrão. Para trocar algum, basta criar um `bikeshare.properties` na pasta `BikeShare` (ex.: `minutosCarencia=5`). Os limites valem na execução seguinte; os valores dos planos padrão entram quando o sistema é zerado, porque quem já contratou um plano mantém as condições do contrato.
-- **Dinheiro em `BigDecimal`**: sem erro de arredondamento de `double`.
+- **Dinheiro em `BigDecimal`**: sem erro de arredondamento de `double`. Recargas, mensalidades e o valor de cada corrida são guardados já em centavos, então o que aparece na tela é exatamente o que o sistema usa.
 
 ---
 
@@ -187,7 +187,7 @@ Conforme o enunciado, o projeto não usa banco de dados:
 - O estado inteiro ([`EstadoSistema`](BikeShare/src/br/ufal/ic/p2/bikeshare/sistema/EstadoSistema.java)) é gravado em `bikeshare_data.ser` com a serialização nativa do Java (`java.io.Serializable`), uma das duas opções permitidas pelo enunciado. Vão para o arquivo os cadastros, os planos e os contadores de ids. A configuração não vai: ela é parâmetro, não estado, e é lida de novo a cada execução.
 - A serialização foi escolhida porque deixa as classes do domínio sem setters públicos e sem construtores vazios, mantendo o encapsulamento.
 - A leitura e a escrita ficam isoladas em [`ArquivoEstado`](BikeShare/src/br/ufal/ic/p2/bikeshare/persistencia/ArquivoEstado.java). Um arquivo ilegível, ou com conteúdo de outro tipo, gera `PersistenciaException` em vez de começar o sistema vazio sem avisar.
-- Nada vai para o arquivo antes de `encerrarSistema`, que grava o estado para o próximo script.
+- Nada vai para o arquivo antes de `encerrarSistema`, que grava o estado para o próximo script. A gravação é feita primeiro num arquivo temporário e só depois substitui o anterior, então uma falha no meio não deixa o `.ser` cortado.
 
 ---
 
