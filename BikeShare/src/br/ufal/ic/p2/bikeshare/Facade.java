@@ -79,7 +79,7 @@ public class Facade {
     // =====================================================================
 
     public String criarEstacao(String nome, String endereco, String capacidade) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return sistema.executar(() -> sistema.estacoes().criar(nome, endereco, capacidade));
     }
 
     // =====================================================================
@@ -107,11 +107,11 @@ public class Facade {
     // =====================================================================
 
     public String getBicicletasDisponiveis(String estacao) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return sistema.estacoes().getBicicletasDisponiveis(estacao);
     }
 
     public String getVagasDisponiveis(String estacao) {
-        throw new UnsupportedOperationException(AINDA_NAO_IMPLEMENTADO);
+        return sistema.estacoes().getVagasDisponiveis(estacao);
     }
 
     public String getEstadoBicicleta(String bicicleta) {

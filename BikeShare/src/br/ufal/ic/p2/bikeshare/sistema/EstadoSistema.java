@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.sistema;
 
+import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
 import br.ufal.ic.p2.bikeshare.modelo.plano.CatalogoPlanos;
 import br.ufal.ic.p2.bikeshare.modelo.plano.PlanoAvulso;
 import br.ufal.ic.p2.bikeshare.modelo.plano.PlanoMensal;
@@ -18,6 +19,7 @@ public class EstadoSistema implements Serializable {
     private Configuracao configuracao;
     private CatalogoPlanos planos;
     private Cadastro<Usuario> usuarios;
+    private Cadastro<Estacao> estacoes;
 
     public EstadoSistema() {
         zerar();
@@ -28,6 +30,7 @@ public class EstadoSistema implements Serializable {
         configuracao = new Configuracao();
         planos = criarPlanosPadrao(configuracao);
         usuarios = new Cadastro<>("U");
+        estacoes = new Cadastro<>("E");
     }
 
     /** Substitui o conteudo atual pelo de outro estado (usado ao restaurar uma copia). */
@@ -35,6 +38,7 @@ public class EstadoSistema implements Serializable {
         configuracao = outro.configuracao;
         planos = outro.planos;
         usuarios = outro.usuarios;
+        estacoes = outro.estacoes;
     }
 
     private static CatalogoPlanos criarPlanosPadrao(Configuracao cfg) {
@@ -45,11 +49,19 @@ public class EstadoSistema implements Serializable {
         return catalogo;
     }
 
+    public Configuracao getConfiguracao() {
+        return configuracao;
+    }
+
     public CatalogoPlanos getPlanos() {
         return planos;
     }
 
     public Cadastro<Usuario> getUsuarios() {
         return usuarios;
+    }
+
+    public Cadastro<Estacao> getEstacoes() {
+        return estacoes;
     }
 }

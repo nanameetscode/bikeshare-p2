@@ -15,6 +15,11 @@ public class Configuracao implements Serializable {
     private final int franquiaMinutosAssinante = 60;
     private final BigDecimal tarifaExcedenteAssinante = new BigDecimal("0.30");
     private final BigDecimal mensalidadePadraoAssinante = new BigDecimal("30");
+    private final int nivelMinimoBateria = 15;
+
+    public int getNivelMinimoBateria() {
+        return nivelMinimoBateria;
+    }
 
     public BigDecimal getTarifaMinutoAvulso() {
         return tarifaMinutoAvulso;
