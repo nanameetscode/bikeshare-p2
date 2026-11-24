@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.servico.usuario;
 
 import br.ufal.ic.p2.bikeshare.excecao.usuario.EmailJaCadastradoException;
+import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioComAluguelException;
 import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioNaoEncontradoException;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 import br.ufal.ic.p2.bikeshare.modelo.plano.CatalogoPlanos;
@@ -51,6 +52,14 @@ public class UsuarioService {
     public Usuario buscar(String id) {
         Validador.obrigatorio(id, "Identificacao do usuario nao pode ser nula.");
         return usuarios().buscar(id).orElseThrow(UsuarioNaoEncontradoException::new);
+    }
+
+    public void remover(String id) {
+        Usuario usuario = buscar(id);
+        if (usuario.getAluguelAtivo().isPresent()) {
+            throw new UsuarioComAluguelException("Nao e possivel remover usuario com aluguel em andamento.");
+        }
+        usuarios().remover(id);
     }
 
     public String getAtributo(String id, String atributo) {
