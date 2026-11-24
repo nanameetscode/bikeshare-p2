@@ -1,6 +1,8 @@
 package br.ufal.ic.p2.bikeshare.modelo.bicicleta;
 
-import br.ufal.ic.p2.bikeshare.excecao.bicicleta.OperacaoBicicletaInvalidaException;
+import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BateriaInsuficienteException;
+import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaSemBateriaException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
@@ -19,13 +21,13 @@ public abstract class Bicicleta implements Serializable {
     private EstadoBicicleta estado = EstadoBicicleta.DISPONIVEL;
 
     protected Bicicleta(String id) {
-        this.id = Validador.obrigatorio(id, "Identificacao da bicicleta nao pode ser nula.");
+        this.id = Validador.obrigatorio(id, CampoObrigatorio.ID_BICICLETA);
     }
 
     public abstract String getTipo();
 
     public int getNivelBateria() {
-        throw new OperacaoBicicletaInvalidaException("Bicicleta nao possui bateria.");
+        throw new BicicletaSemBateriaException();
     }
 
     public boolean temBateriaSuficiente(int nivelMinimo) {
@@ -46,7 +48,7 @@ public abstract class Bicicleta implements Serializable {
 
     public void exigirBateria(int nivelMinimo) {
         if (!temBateriaSuficiente(nivelMinimo)) {
-            throw new OperacaoBicicletaInvalidaException("Nivel de bateria insuficiente.");
+            throw new BateriaInsuficienteException();
         }
     }
 

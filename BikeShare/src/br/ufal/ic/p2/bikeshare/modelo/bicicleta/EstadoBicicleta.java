@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.modelo.bicicleta;
 
-import br.ufal.ic.p2.bikeshare.excecao.bicicleta.OperacaoBicicletaInvalidaException;
+import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaIndisponivelException;
+import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaNaoEmUsoException;
 
 /** Situacao da bicicleta. So a bicicleta disponivel pode ser retirada ou removida. */
 public enum EstadoBicicleta {
@@ -30,12 +31,12 @@ public enum EstadoBicicleta {
 
     public void exigirDisponivel() {
         if (!estaDisponivel()) {
-            throw new OperacaoBicicletaInvalidaException("Bicicleta nao esta disponivel.");
+            throw new BicicletaIndisponivelException();
         }
     }
 
     public void exigirEmUso() {
-        throw new OperacaoBicicletaInvalidaException("Bicicleta nao esta em uso.");
+        throw new BicicletaNaoEmUsoException();
     }
 
     public String getRotulo() {

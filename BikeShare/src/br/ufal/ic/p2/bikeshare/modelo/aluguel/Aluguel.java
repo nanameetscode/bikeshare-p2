@@ -1,7 +1,9 @@
 package br.ufal.ic.p2.bikeshare.modelo.aluguel;
 
-import br.ufal.ic.p2.bikeshare.excecao.aluguel.EstadoAluguelInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.aluguel.DevolucaoAntesDaRetiradaException;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoNuloException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
@@ -28,23 +30,23 @@ public class Aluguel implements Serializable {
     private BigDecimal valorCobrado;
 
     public Aluguel(String id, String usuario, String bicicleta, String estacaoOrigem, LocalDateTime inicio) {
-        this.id = Validador.obrigatorio(id, "Identificacao do aluguel nao pode ser nula.");
-        this.usuario = Validador.obrigatorio(usuario, "Identificacao do usuario nao pode ser nula.");
-        this.bicicleta = Validador.obrigatorio(bicicleta, "Identificacao da bicicleta nao pode ser nula.");
-        this.estacaoOrigem = Validador.obrigatorio(estacaoOrigem, "Identificacao da estacao nao pode ser nula.");
+        this.id = Validador.obrigatorio(id, CampoObrigatorio.ID_ALUGUEL);
+        this.usuario = Validador.obrigatorio(usuario, CampoObrigatorio.ID_USUARIO);
+        this.bicicleta = Validador.obrigatorio(bicicleta, CampoObrigatorio.ID_BICICLETA);
+        this.estacaoOrigem = Validador.obrigatorio(estacaoOrigem, CampoObrigatorio.ID_ESTACAO);
         this.inicio = exigirData(inicio);
     }
 
     private static LocalDateTime exigirData(LocalDateTime data) {
         if (data == null) {
-            throw new CampoNuloException("Data nao pode ser nula.");
+            throw new CampoNuloException(CampoObrigatorio.DATA);
         }
         return data;
     }
 
     public long minutosAte(LocalDateTime momento) {
         if (momento.isBefore(inicio)) {
-            throw new EstadoAluguelInvalidoException("Data de devolucao anterior a data de retirada.");
+            throw new DevolucaoAntesDaRetiradaException();
         }
         return Duration.between(inicio, momento).toMinutes();
     }
@@ -70,8 +72,8 @@ public class Aluguel implements Serializable {
     private void encerrar(EstadoAluguel novoEstado, String destino, LocalDateTime momento, BigDecimal valor) {
         estado.exigirEmAndamento();
         minutosAte(exigirData(momento));
-        estacaoDestino = Validador.obrigatorio(destino, "Identificacao da estacao nao pode ser nula.");
-        valorCobrado = Validador.naoNegativo(valor, "Valor nao pode ser negativo.");
+        estacaoDestino = Validador.obrigatorio(destino, CampoObrigatorio.ID_ESTACAO);
+        valorCobrado = Validador.naoNegativo(valor, ValorRecusado.VALOR_NEGATIVO);
         fim = momento;
         estado = novoEstado;
     }

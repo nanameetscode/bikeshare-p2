@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
@@ -13,7 +14,7 @@ public class PessoaFisica extends Usuario {
 
     public PessoaFisica(String id, DadosUsuario dados, Assinatura assinatura, String cpf) {
         super(id, dados, assinatura);
-        this.cpf = Validador.obrigatorio(cpf, "CPF nao pode ser nulo.");
+        this.cpf = Validador.obrigatorio(cpf, CampoObrigatorio.CPF);
     }
 
     @Override

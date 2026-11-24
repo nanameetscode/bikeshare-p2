@@ -1,21 +1,23 @@
 package br.ufal.ic.p2.bikeshare.modelo.pagamento;
 
 import br.ufal.ic.p2.bikeshare.excecao.BikeShareException;
-import br.ufal.ic.p2.bikeshare.excecao.pagamento.MetodoPagamentoIncompativelException;
+import br.ufal.ic.p2.bikeshare.excecao.pagamento.UsuarioNaoUsaCartaoException;
+import br.ufal.ic.p2.bikeshare.excecao.pagamento.UsuarioNaoUsaPixException;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.AtributoInexistenteException;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /** Dados que so existem em um metodo de pagamento e o erro de quem nao usa esse metodo. */
 public enum DadoPagamento {
-    NUMERO_CARTAO("numeroCartao", "Usuario nao usa cartao."),
-    VALIDADE_CARTAO("validadeCartao", "Usuario nao usa cartao."),
-    CHAVE_PIX("chavePix", "Usuario nao usa pix.");
+    NUMERO_CARTAO("numeroCartao", UsuarioNaoUsaCartaoException::new),
+    VALIDADE_CARTAO("validadeCartao", UsuarioNaoUsaCartaoException::new),
+    CHAVE_PIX("chavePix", UsuarioNaoUsaPixException::new);
 
     private final String atributo;
-    private final String erro;
+    private final Supplier<BikeShareException> erro;
 
-    DadoPagamento(String atributo, String erro) {
+    DadoPagamento(String atributo, Supplier<BikeShareException> erro) {
         this.atributo = atributo;
         this.erro = erro;
     }
@@ -24,7 +26,7 @@ public enum DadoPagamento {
         return Arrays.stream(values())
                 .filter(dado -> dado.atributo.equals(atributo))
                 .findFirst()
-                .<BikeShareException>map(dado -> new MetodoPagamentoIncompativelException(dado.erro))
+                .map(dado -> dado.erro.get())
                 .orElseGet(AtributoInexistenteException::new);
     }
 

@@ -1,6 +1,6 @@
 package br.ufal.ic.p2.bikeshare.modelo.pagamento;
 
-import br.ufal.ic.p2.bikeshare.excecao.pagamento.MetodoPagamentoIncompativelException;
+import br.ufal.ic.p2.bikeshare.excecao.pagamento.UsuarioNaoUsaSaldoException;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 public abstract class MetodoPagamento implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static final String NAO_USA_SALDO = "Usuario nao usa saldo pre-carregado.";
 
     /** Nome do metodo no formato dos testes (ex.: {@code pix}). */
     public abstract String getTipo();
@@ -30,10 +29,10 @@ public abstract class MetodoPagamento implements Serializable {
     }
 
     public BigDecimal getSaldo() {
-        throw new MetodoPagamentoIncompativelException(NAO_USA_SALDO);
+        throw new UsuarioNaoUsaSaldoException();
     }
 
     public void recarregar(BigDecimal valor) {
-        throw new MetodoPagamentoIncompativelException(NAO_USA_SALDO);
+        throw new UsuarioNaoUsaSaldoException();
     }
 }

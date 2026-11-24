@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.persistencia;
 
-import br.ufal.ic.p2.bikeshare.excecao.sistema.PersistenciaException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.GravacaoEstadoException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.LeituraEstadoException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,7 +21,7 @@ public final class Serializador {
         try (ObjectOutputStream saida = new ObjectOutputStream(bytes)) {
             saida.writeObject(objeto);
         } catch (IOException e) {
-            throw new PersistenciaException("Nao foi possivel gravar o estado do sistema.", e);
+            throw new GravacaoEstadoException(e);
         }
         return bytes.toByteArray();
     }
@@ -30,7 +31,7 @@ public final class Serializador {
         try (ObjectInputStream entrada = new ObjectInputStream(new ByteArrayInputStream(dados))) {
             return tipo.cast(entrada.readObject());
         } catch (IOException | ClassNotFoundException | ClassCastException e) {
-            throw new PersistenciaException("Nao foi possivel ler o estado do sistema.", e);
+            throw new LeituraEstadoException(e);
         }
     }
 

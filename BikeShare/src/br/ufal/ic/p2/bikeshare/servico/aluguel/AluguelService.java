@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.servico.aluguel;
 
 import br.ufal.ic.p2.bikeshare.excecao.aluguel.AluguelNaoEncontradoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.modelo.aluguel.Aluguel;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
 import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
@@ -54,7 +55,7 @@ public class AluguelService {
     }
 
     public Aluguel buscar(String id) {
-        return alugueis().exigir(id, "Identificacao do aluguel nao pode ser nula.",
+        return alugueis().exigir(id, CampoObrigatorio.ID_ALUGUEL,
                 AluguelNaoEncontradoException::new);
     }
 

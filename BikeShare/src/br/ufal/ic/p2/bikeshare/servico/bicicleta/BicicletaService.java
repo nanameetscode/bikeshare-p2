@@ -2,6 +2,7 @@ package br.ufal.ic.p2.bikeshare.servico.bicicleta;
 
 import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaJaExisteException;
 import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaNaoEncontradaException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.TipoBicicleta;
 import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
@@ -24,7 +25,7 @@ public class BicicletaService {
     /** Cadastra a bicicleta na estacao; {@code nivelBateria} e nulo quando nao foi informado. */
     public void adicionar(String idEstacao, String idBicicleta, String tipo, String nivelBateria) {
         Estacao estacao = estacoes.buscar(idEstacao);
-        Validador.obrigatorio(idBicicleta, "Identificacao da bicicleta nao pode ser nula.");
+        Validador.obrigatorio(idBicicleta, CampoObrigatorio.ID_BICICLETA);
         if (bicicletas().contem(idBicicleta)) {
             throw new BicicletaJaExisteException();
         }
@@ -43,7 +44,7 @@ public class BicicletaService {
     }
 
     public Bicicleta buscar(String id) {
-        return bicicletas().exigir(id, "Identificacao da bicicleta nao pode ser nula.",
+        return bicicletas().exigir(id, CampoObrigatorio.ID_BICICLETA,
                 BicicletaNaoEncontradaException::new);
     }
 

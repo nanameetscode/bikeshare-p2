@@ -1,21 +1,23 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
 import br.ufal.ic.p2.bikeshare.excecao.BikeShareException;
-import br.ufal.ic.p2.bikeshare.excecao.usuario.TipoUsuarioIncompativelException;
+import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioNaoEhPessoaFisicaException;
+import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioNaoEhPessoaJuridicaException;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.AtributoInexistenteException;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /** Documentos que so existem em um tipo de usuario e o erro de quem nao e desse tipo. */
 public enum DocumentoUsuario {
-    CPF("cpf", "Usuario nao eh pessoa fisica."),
-    CNPJ("cnpj", "Usuario nao eh pessoa juridica."),
-    RAZAO_SOCIAL("razaoSocial", "Usuario nao eh pessoa juridica.");
+    CPF("cpf", UsuarioNaoEhPessoaFisicaException::new),
+    CNPJ("cnpj", UsuarioNaoEhPessoaJuridicaException::new),
+    RAZAO_SOCIAL("razaoSocial", UsuarioNaoEhPessoaJuridicaException::new);
 
     private final String atributo;
-    private final String erro;
+    private final Supplier<BikeShareException> erro;
 
-    DocumentoUsuario(String atributo, String erro) {
+    DocumentoUsuario(String atributo, Supplier<BikeShareException> erro) {
         this.atributo = atributo;
         this.erro = erro;
     }
@@ -24,7 +26,7 @@ public enum DocumentoUsuario {
         return Arrays.stream(values())
                 .filter(documento -> documento.atributo.equals(atributo))
                 .findFirst()
-                .<BikeShareException>map(documento -> new TipoUsuarioIncompativelException(documento.erro))
+                .map(documento -> documento.erro.get())
                 .orElseGet(AtributoInexistenteException::new);
     }
 

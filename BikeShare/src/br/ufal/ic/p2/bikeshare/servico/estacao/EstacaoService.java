@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.servico.estacao;
 
 import br.ufal.ic.p2.bikeshare.excecao.estacao.EstacaoNaoEncontradaException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
 import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
 import br.ufal.ic.p2.bikeshare.sistema.Cadastro;
@@ -27,7 +28,7 @@ public class EstacaoService {
     }
 
     public Estacao buscar(String id) {
-        return estacoes().exigir(id, "Identificacao da estacao nao pode ser nula.",
+        return estacoes().exigir(id, CampoObrigatorio.ID_ESTACAO,
                 EstacaoNaoEncontradaException::new);
     }
 

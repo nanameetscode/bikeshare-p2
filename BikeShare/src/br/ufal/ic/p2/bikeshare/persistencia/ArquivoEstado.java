@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.persistencia;
 
-import br.ufal.ic.p2.bikeshare.excecao.sistema.PersistenciaException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.GravacaoEstadoException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.LeituraEstadoException;
 import br.ufal.ic.p2.bikeshare.sistema.EstadoSistema;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class ArquivoEstado {
         try {
             return Optional.of(Serializador.deBytes(Files.readAllBytes(arquivo), EstadoSistema.class));
         } catch (IOException e) {
-            throw new PersistenciaException("Nao foi possivel ler o estado do sistema.", e);
+            throw new LeituraEstadoException(e);
         }
     }
 
@@ -37,7 +38,7 @@ public class ArquivoEstado {
             Files.write(temporario, Serializador.paraBytes(estado));
             Files.move(temporario, arquivo, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
-            throw new PersistenciaException("Nao foi possivel gravar o estado do sistema.", e);
+            throw new GravacaoEstadoException(e);
         }
     }
 }

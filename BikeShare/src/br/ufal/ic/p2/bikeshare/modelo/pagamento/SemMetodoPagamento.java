@@ -1,6 +1,6 @@
 package br.ufal.ic.p2.bikeshare.modelo.pagamento;
 
-import br.ufal.ic.p2.bikeshare.excecao.pagamento.PagamentoRecusadoException;
+import br.ufal.ic.p2.bikeshare.excecao.pagamento.MetodoPagamentoNaoCadastradoException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,7 +10,6 @@ public class SemMetodoPagamento extends MetodoPagamento {
 
     public static final String TIPO = "nenhum";
     private static final long serialVersionUID = 1L;
-    private static final String NAO_CADASTRADO = "Metodo de pagamento nao cadastrado.";
 
     @Override
     public String getTipo() {
@@ -19,11 +18,11 @@ public class SemMetodoPagamento extends MetodoPagamento {
 
     @Override
     public void autorizarRetirada(LocalDateTime data) {
-        throw new PagamentoRecusadoException(NAO_CADASTRADO);
+        throw new MetodoPagamentoNaoCadastradoException();
     }
 
     @Override
     public void cobrar(BigDecimal valor) {
-        throw new PagamentoRecusadoException(NAO_CADASTRADO);
+        throw new MetodoPagamentoNaoCadastradoException();
     }
 }

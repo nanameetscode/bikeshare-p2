@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
@@ -15,8 +16,8 @@ public class PessoaJuridica extends Usuario {
     public PessoaJuridica(String id, DadosUsuario dados, Assinatura assinatura,
                           String cnpj, String razaoSocial) {
         super(id, dados, assinatura);
-        this.cnpj = Validador.obrigatorio(cnpj, "CNPJ nao pode ser nulo.");
-        this.razaoSocial = Validador.obrigatorio(razaoSocial, "Razao social nao pode ser nula.");
+        this.cnpj = Validador.obrigatorio(cnpj, CampoObrigatorio.CNPJ);
+        this.razaoSocial = Validador.obrigatorio(razaoSocial, CampoObrigatorio.RAZAO_SOCIAL);
     }
 
     @Override

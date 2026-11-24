@@ -1,6 +1,8 @@
 package br.ufal.ic.p2.bikeshare.util;
 
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,11 +19,11 @@ public final class Datas {
     }
 
     public static LocalDateTime ler(String data) {
-        String texto = Validador.obrigatorio(data, "Data nao pode ser nula.").trim();
+        String texto = Validador.obrigatorio(data, CampoObrigatorio.DATA).trim();
         try {
             return LocalDateTime.parse(texto, FORMATO);
         } catch (DateTimeParseException e) {
-            throw new ValorInvalidoException("Data invalida.");
+            throw new ValorInvalidoException(ValorRecusado.DATA);
         }
     }
 

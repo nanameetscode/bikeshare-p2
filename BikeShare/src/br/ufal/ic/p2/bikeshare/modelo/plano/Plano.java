@@ -1,6 +1,8 @@
 package br.ufal.ic.p2.bikeshare.modelo.plano;
 
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
@@ -19,15 +21,15 @@ public abstract class Plano implements Serializable {
     private final BigDecimal valorMinuto;
 
     protected Plano(String nome, int franquiaMinutos, BigDecimal valorMinuto) {
-        this.nome = Validador.obrigatorio(nome, "Nome do plano nao pode ser nulo.");
+        this.nome = Validador.obrigatorio(nome, CampoObrigatorio.NOME_PLANO);
         this.franquiaMinutos = validarFranquia(franquiaMinutos);
         this.valorMinuto = Validador.naoNegativo(valorMinuto,
-                "Valor do minuto excedente deve ser nao-negativo.");
+                ValorRecusado.VALOR_MINUTO_NEGATIVO);
     }
 
     private static int validarFranquia(int franquiaMinutos) {
         if (franquiaMinutos < 0) {
-            throw new ValorInvalidoException("Franquia deve ser nao-negativa.");
+            throw new ValorInvalidoException(ValorRecusado.FRANQUIA_NEGATIVA);
         }
         return franquiaMinutos;
     }

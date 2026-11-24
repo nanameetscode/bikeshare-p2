@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.modelo.aluguel;
 
-import br.ufal.ic.p2.bikeshare.excecao.aluguel.EstadoAluguelInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.aluguel.AluguelAindaEmAndamentoException;
+import br.ufal.ic.p2.bikeshare.excecao.aluguel.AluguelNaoEmAndamentoException;
 
 /** Situacao de um aluguel. So o aluguel em andamento pode ser devolvido. */
 public enum EstadoAluguel {
@@ -12,7 +13,7 @@ public enum EstadoAluguel {
 
         @Override
         public void exigirEncerrado() {
-            throw new EstadoAluguelInvalidoException("Aluguel ainda esta em andamento.");
+            throw new AluguelAindaEmAndamentoException();
         }
     },
     FINALIZADO("finalizado"),
@@ -26,7 +27,7 @@ public enum EstadoAluguel {
     }
 
     public void exigirEmAndamento() {
-        throw new EstadoAluguelInvalidoException("Aluguel nao esta em andamento.");
+        throw new AluguelNaoEmAndamentoException();
     }
 
     public void exigirEncerrado() {

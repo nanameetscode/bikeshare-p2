@@ -1,10 +1,11 @@
 package br.ufal.ic.p2.bikeshare.sistema;
 
-import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.ConfiguracaoInvalidaException;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.math.BigDecimal;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 /**
  * Parametros de tarifacao e limites de negocio (RNF-4). Os valores padrao sao os do
@@ -43,22 +44,18 @@ public class Configuracao {
 
     /** Tarifas podem ter mais de duas casas; o valor cobrado e que e arredondado para centavos. */
     private static BigDecimal decimal(Properties valores, String chave, String padrao) {
-        String erro = erro(chave);
+        Supplier<ConfiguracaoInvalidaException> erro = () -> new ConfiguracaoInvalidaException(chave);
         BigDecimal valor = Validador.decimal(valores.getProperty(chave, padrao), erro, erro);
         return Validador.naoNegativo(valor, erro);
     }
 
     private static int inteiro(Properties valores, String chave, String padrao) {
-        String erro = erro(chave);
+        Supplier<ConfiguracaoInvalidaException> erro = () -> new ConfiguracaoInvalidaException(chave);
         int valor = Validador.inteiro(valores.getProperty(chave, padrao), erro, erro);
         if (valor < 0) {
-            throw new ValorInvalidoException(erro);
+            throw erro.get();
         }
         return valor;
-    }
-
-    private static String erro(String chave) {
-        return "Configuracao invalida: " + chave + ".";
     }
 
     public BigDecimal getTarifaMinutoAvulso() {

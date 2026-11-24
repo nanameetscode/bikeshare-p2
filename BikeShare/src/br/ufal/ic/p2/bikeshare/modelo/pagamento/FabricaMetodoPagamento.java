@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.modelo.pagamento;
 
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 /** Cria o metodo de pagamento, conferindo se o nome informado combina com os dados recebidos. */
@@ -25,6 +26,6 @@ public final class FabricaMetodoPagamento {
     }
 
     private static void exigirTipo(String informado, String esperado) {
-        Validador.exigirIgual(informado, esperado, "Valor de metodo de pagamento invalido.");
+        Validador.exigirIgual(informado, esperado, ValorRecusado.METODO_PAGAMENTO);
     }
 }

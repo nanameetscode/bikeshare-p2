@@ -1,14 +1,18 @@
 package br.ufal.ic.p2.bikeshare.modelo.estacao;
 
+import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaForaDaEstacaoException;
 import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaJaExisteException;
-import br.ufal.ic.p2.bikeshare.excecao.bicicleta.OperacaoBicicletaInvalidaException;
 import br.ufal.ic.p2.bikeshare.excecao.estacao.EstacaoSemVagaException;
+import br.ufal.ic.p2.bikeshare.excecao.estacao.EstacaoSemVagasDisponiveisException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.function.Supplier;
 
 /**
  * Ponto de retirada e devolucao, com um numero fixo de vagas. E a unica fonte
@@ -26,17 +30,17 @@ public class Estacao implements Serializable {
 
     /** Valida os dados na ordem nome, endereco e capacidade (informada como texto). */
     public Estacao(String id, String nome, String endereco, String capacidade) {
-        this.id = Validador.obrigatorio(id, "Identificacao da estacao nao pode ser nula.");
-        this.nome = Validador.obrigatorio(nome, "Nome nao pode ser nulo.");
-        this.endereco = Validador.obrigatorio(endereco, "Endereco nao pode ser nulo.");
+        this.id = Validador.obrigatorio(id, CampoObrigatorio.ID_ESTACAO);
+        this.nome = Validador.obrigatorio(nome, CampoObrigatorio.NOME);
+        this.endereco = Validador.obrigatorio(endereco, CampoObrigatorio.ENDERECO);
         this.capacidade = validarCapacidade(capacidade);
     }
 
     private static int validarCapacidade(String capacidade) {
         int vagas = Validador.inteiro(capacidade,
-                "Capacidade nao pode ser nula.", "Capacidade deve ser numerica.");
+                CampoObrigatorio.CAPACIDADE, ValorRecusado.CAPACIDADE_NAO_NUMERICA);
         if (vagas <= 0) {
-            throw new ValorInvalidoException("Capacidade deve ser positiva.");
+            throw new ValorInvalidoException(ValorRecusado.CAPACIDADE_NAO_POSITIVA);
         }
         return vagas;
     }
@@ -45,7 +49,7 @@ public class Estacao implements Serializable {
         if (contem(bicicleta)) {
             throw new BicicletaJaExisteException();
         }
-        exigirVaga("Estacao sem vagas disponiveis.");
+        exigirVaga(EstacaoSemVagasDisponiveisException::new);
         bicicletas.add(bicicleta);
     }
 
@@ -58,15 +62,16 @@ public class Estacao implements Serializable {
         return bicicletas.contains(bicicleta);
     }
 
-    public void exigirVaga(String mensagem) {
+    /** Recusa com o erro informado, que muda conforme a operacao (cadastro ou devolucao). */
+    public void exigirVaga(Supplier<? extends EstacaoSemVagaException> erro) {
         if (getVagasLivres() <= 0) {
-            throw new EstacaoSemVagaException(mensagem);
+            throw erro.get();
         }
     }
 
     public void exigirPresenca(Bicicleta bicicleta) {
         if (!contem(bicicleta)) {
-            throw new OperacaoBicicletaInvalidaException("Bicicleta nao esta nesta estacao.");
+            throw new BicicletaForaDaEstacaoException();
         }
     }
 

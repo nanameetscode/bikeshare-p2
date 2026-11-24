@@ -1,6 +1,6 @@
 package br.ufal.ic.p2.bikeshare.persistencia;
 
-import br.ufal.ic.p2.bikeshare.excecao.sistema.PersistenciaException;
+import br.ufal.ic.p2.bikeshare.excecao.sistema.LeituraConfiguracaoException;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -22,7 +22,7 @@ public final class ArquivoConfiguracao {
         try (Reader leitor = Files.newBufferedReader(arquivo)) {
             valores.load(leitor);
         } catch (IOException e) {
-            throw new PersistenciaException("Nao foi possivel ler a configuracao do sistema.", e);
+            throw new LeituraConfiguracaoException(e);
         }
         return valores;
     }

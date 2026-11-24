@@ -1,5 +1,6 @@
 package br.ufal.ic.p2.bikeshare.servico.aluguel;
 
+import br.ufal.ic.p2.bikeshare.excecao.estacao.EstacaoCheiaException;
 import br.ufal.ic.p2.bikeshare.modelo.aluguel.Aluguel;
 import br.ufal.ic.p2.bikeshare.modelo.bicicleta.Bicicleta;
 import br.ufal.ic.p2.bikeshare.modelo.estacao.Estacao;
@@ -41,7 +42,7 @@ public class DevolucaoService {
         LocalDateTime fim = Datas.ler(data);
         aluguel.exigirEmAndamento();
         long minutos = aluguel.minutosAte(fim);
-        destino.exigirVaga("Estacao cheia.");
+        destino.exigirVaga(EstacaoCheiaException::new);
         Usuario usuario = usuarios.buscar(aluguel.getUsuario());
         Bicicleta bicicleta = bicicletas.buscar(aluguel.getBicicleta());
         if (minutos > cfg.getMinutosMaximoAluguel()) {

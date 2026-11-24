@@ -1,9 +1,12 @@
 package br.ufal.ic.p2.bikeshare.modelo.usuario;
 
-import br.ufal.ic.p2.bikeshare.excecao.aluguel.EstadoAluguelInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.aluguel.AluguelNaoEmAndamentoException;
 import br.ufal.ic.p2.bikeshare.excecao.plano.PlanoInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.usuario.AluguelEmAndamentoException;
 import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioComAluguelException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.FabricaMetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.MetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.pagamento.SaldoPreCarregado;
@@ -15,6 +18,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Ciclista cadastrado. Guarda o que e comum a pessoa fisica e juridica e recusa
@@ -36,10 +40,10 @@ public abstract class Usuario implements Serializable {
     private String aluguelAtivo;
 
     protected Usuario(String id, DadosUsuario dados, Assinatura assinatura) {
-        this.id = Validador.obrigatorio(id, "Identificacao do usuario nao pode ser nula.");
-        this.nome = Validador.obrigatorio(dados.nome(), "Nome nao pode ser nulo.");
+        this.id = Validador.obrigatorio(id, CampoObrigatorio.ID_USUARIO);
+        this.nome = Validador.obrigatorio(dados.nome(), CampoObrigatorio.NOME);
         this.email = Validador.email(dados.email());
-        this.senha = Validador.obrigatorio(dados.senha(), "Senha nao pode ser nula.");
+        this.senha = Validador.obrigatorio(dados.senha(), CampoObrigatorio.SENHA);
         this.assinatura = exigirAssinatura(assinatura);
     }
 
@@ -62,7 +66,7 @@ public abstract class Usuario implements Serializable {
     }
 
     public void alterarNome(String novoNome) {
-        nome = Validador.obrigatorio(novoNome, "Nome nao pode ser nulo.");
+        nome = Validador.obrigatorio(novoNome, CampoObrigatorio.NOME);
     }
 
     public void alterarEmail(String novoEmail) {
@@ -70,7 +74,7 @@ public abstract class Usuario implements Serializable {
     }
 
     public void alterarSenha(String novaSenha) {
-        senha = Validador.obrigatorio(novaSenha, "Senha nao pode ser nula.");
+        senha = Validador.obrigatorio(novaSenha, CampoObrigatorio.SENHA);
     }
 
     public void alterarAssinatura(Assinatura novaAssinatura) {
@@ -79,7 +83,7 @@ public abstract class Usuario implements Serializable {
 
     public void alterarMetodoPagamento(MetodoPagamento novoMetodo) {
         if (novoMetodo == null) {
-            throw new ValorInvalidoException("Valor de metodo de pagamento invalido.");
+            throw new ValorInvalidoException(ValorRecusado.METODO_PAGAMENTO);
         }
         metodoPagamento = novoMetodo;
     }
@@ -92,15 +96,15 @@ public abstract class Usuario implements Serializable {
         metodoPagamento.recarregar(valor);
     }
 
-    public void exigirSemAluguel(String mensagem) {
+    public void exigirSemAluguel(Supplier<? extends UsuarioComAluguelException> erro) {
         if (aluguelAtivo != null) {
-            throw new UsuarioComAluguelException(mensagem);
+            throw erro.get();
         }
     }
 
     public void exigirLiberadoParaRetirada() {
         estado.exigirAdimplente();
-        exigirSemAluguel("Usuario ja possui um aluguel em andamento.");
+        exigirSemAluguel(AluguelEmAndamentoException::new);
     }
 
     public void autorizarRetirada(LocalDateTime data) {
@@ -109,23 +113,23 @@ public abstract class Usuario implements Serializable {
 
     public void iniciarAluguel(String idAluguel) {
         exigirLiberadoParaRetirada();
-        aluguelAtivo = Validador.obrigatorio(idAluguel, "Identificacao do aluguel nao pode ser nula.");
+        aluguelAtivo = Validador.obrigatorio(idAluguel, CampoObrigatorio.ID_ALUGUEL);
     }
 
     public void encerrarAluguel() {
         if (aluguelAtivo == null) {
-            throw new EstadoAluguelInvalidoException("Aluguel nao esta em andamento.");
+            throw new AluguelNaoEmAndamentoException();
         }
         aluguelAtivo = null;
     }
 
     public void pagar(BigDecimal valor) {
-        metodoPagamento.cobrar(Validador.naoNegativo(valor, "Valor nao pode ser negativo."));
+        metodoPagamento.cobrar(Validador.naoNegativo(valor, ValorRecusado.VALOR_NEGATIVO));
     }
 
     public void registrarPenalidade(BigDecimal valor) {
         if (valor.signum() <= 0) {
-            throw new ValorInvalidoException("Valor deve ser positivo.");
+            throw new ValorInvalidoException(ValorRecusado.VALOR_NAO_POSITIVO);
         }
         totalPendencias = totalPendencias.add(valor);
         estado = EstadoUsuario.INADIMPLENTE;

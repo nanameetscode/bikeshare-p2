@@ -1,7 +1,9 @@
 package br.ufal.ic.p2.bikeshare.modelo.bicicleta;
 
-import br.ufal.ic.p2.bikeshare.excecao.bicicleta.OperacaoBicicletaInvalidaException;
+import br.ufal.ic.p2.bikeshare.excecao.bicicleta.BicicletaSemBateriaException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
 import java.util.Arrays;
@@ -13,7 +15,7 @@ public enum TipoBicicleta {
         @Override
         public Bicicleta criar(String id, String nivelBateria) {
             if (nivelBateria != null) {
-                throw new OperacaoBicicletaInvalidaException("Bicicleta nao possui bateria.");
+                throw new BicicletaSemBateriaException();
             }
             return new BicicletaConvencional(id);
         }
@@ -23,7 +25,7 @@ public enum TipoBicicleta {
         @Override
         public Bicicleta criar(String id, String nivelBateria) {
             int nivel = Validador.inteiro(nivelBateria,
-                    "Nivel de bateria nao pode ser nulo.", "Nivel de bateria deve ser numerico.");
+                    CampoObrigatorio.NIVEL_BATERIA, ValorRecusado.NIVEL_BATERIA_NAO_NUMERICO);
             return new BicicletaEletrica(id, nivel);
         }
     };
@@ -41,7 +43,7 @@ public enum TipoBicicleta {
         return Arrays.stream(values())
                 .filter(tipo -> tipo.rotulo.equals(rotulo))
                 .findFirst()
-                .orElseThrow(() -> new ValorInvalidoException("Tipo invalido."));
+                .orElseThrow(() -> new ValorInvalidoException(ValorRecusado.TIPO));
     }
 
     public String getRotulo() {

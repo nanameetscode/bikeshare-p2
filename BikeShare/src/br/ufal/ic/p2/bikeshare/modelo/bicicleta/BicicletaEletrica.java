@@ -1,6 +1,7 @@
 package br.ufal.ic.p2.bikeshare.modelo.bicicleta;
 
 import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorInvalidoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 
 import java.math.BigDecimal;
 
@@ -16,8 +17,7 @@ public class BicicletaEletrica extends Bicicleta {
     public BicicletaEletrica(String id, int nivelBateria) {
         super(id);
         if (nivelBateria < CARGA_MINIMA || nivelBateria > CARGA_MAXIMA) {
-            throw new ValorInvalidoException("Nivel de bateria deve estar entre "
-                    + CARGA_MINIMA + " e " + CARGA_MAXIMA + ".");
+            throw new ValorInvalidoException(ValorRecusado.NIVEL_BATERIA_FORA_DA_FAIXA);
         }
         this.nivelBateria = nivelBateria;
     }

@@ -1,7 +1,10 @@
 package br.ufal.ic.p2.bikeshare.servico.usuario;
 
 import br.ufal.ic.p2.bikeshare.excecao.usuario.EmailJaCadastradoException;
+import br.ufal.ic.p2.bikeshare.excecao.usuario.RemocaoComAluguelException;
 import br.ufal.ic.p2.bikeshare.excecao.usuario.UsuarioNaoEncontradoException;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.CampoObrigatorio;
+import br.ufal.ic.p2.bikeshare.excecao.validacao.ValorRecusado;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 import br.ufal.ic.p2.bikeshare.modelo.plano.CatalogoPlanos;
 import br.ufal.ic.p2.bikeshare.modelo.usuario.DadosUsuario;
@@ -33,7 +36,7 @@ public class UsuarioService {
      */
     public String criarPessoaFisica(String nome, String email, String senha, String tipo, String cpf,
                                     String plano, String mensalidade) {
-        Validador.exigirIgual(tipo, PessoaFisica.TIPO, "Tipo invalido.");
+        Validador.exigirIgual(tipo, PessoaFisica.TIPO, ValorRecusado.TIPO);
         Assinatura assinatura = contratar(plano, mensalidade);
         return registrar(new PessoaFisica(usuarios().gerarId(),
                 new DadosUsuario(nome, email, senha), assinatura, cpf));
@@ -42,19 +45,19 @@ public class UsuarioService {
     /** Cadastra uma pessoa juridica; mesmas regras de {@link #criarPessoaFisica}. */
     public String criarPessoaJuridica(String nome, String email, String senha, String tipo, String cnpj,
                                       String razaoSocial, String plano, String mensalidade) {
-        Validador.exigirIgual(tipo, PessoaJuridica.TIPO, "Tipo invalido.");
+        Validador.exigirIgual(tipo, PessoaJuridica.TIPO, ValorRecusado.TIPO);
         Assinatura assinatura = contratar(plano, mensalidade);
         return registrar(new PessoaJuridica(usuarios().gerarId(),
                 new DadosUsuario(nome, email, senha), assinatura, cnpj, razaoSocial));
     }
 
     public Usuario buscar(String id) {
-        return usuarios().exigir(id, "Identificacao do usuario nao pode ser nula.",
+        return usuarios().exigir(id, CampoObrigatorio.ID_USUARIO,
                 UsuarioNaoEncontradoException::new);
     }
 
     public void remover(String id) {
-        buscar(id).exigirSemAluguel("Nao e possivel remover usuario com aluguel em andamento.");
+        buscar(id).exigirSemAluguel(RemocaoComAluguelException::new);
         usuarios().remover(id);
     }
 
@@ -64,7 +67,7 @@ public class UsuarioService {
 
     /** Busca o identificador do usuario pelo email, sem diferenciar maiusculas de minusculas. */
     public String buscarIdPorEmail(String email) {
-        Validador.obrigatorio(email, "Email nao pode ser nulo.");
+        Validador.obrigatorio(email, CampoObrigatorio.EMAIL);
         return buscarPorEmail(email).map(Usuario::getId).orElseThrow(UsuarioNaoEncontradoException::new);
     }
 
