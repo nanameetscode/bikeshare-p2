@@ -6,7 +6,8 @@ import br.ufal.ic.p2.bikeshare.util.Formato;
 
 /**
  * Traduz o nome de atributo usado pelos testes para o dado do usuario, ja formatado.
- * Os dados que so existem em um subtipo (cpf, cnpj...) sao resolvidos por polimorfismo.
+ * Os dados que so existem em um subtipo (cpf, cnpj, numero do cartao...) sao
+ * resolvidos por polimorfismo no proprio usuario ou no metodo de pagamento.
  */
 final class AtributosUsuario {
 
@@ -14,17 +15,31 @@ final class AtributosUsuario {
     }
 
     static String ler(Usuario usuario, String atributo) {
-        return switch (atributo == null ? "" : atributo) {
+        String nome = atributo == null ? "" : atributo;
+        return switch (nome) {
             case "nome" -> usuario.getNome();
             case "email" -> usuario.getEmail();
+            case "senha" -> usuario.getSenha();
             case "tipo" -> usuario.getTipo();
             case "estado" -> usuario.getEstado().getRotulo();
             case "cpf" -> usuario.getCpf();
             case "cnpj" -> usuario.getCnpj();
             case "razaoSocial" -> usuario.getRazaoSocial();
+            case "aluguelAtivo" -> usuario.getAluguelAtivo().orElse("nenhum");
+            default -> lerDadoFinanceiro(usuario, nome);
+        };
+    }
+
+    private static String lerDadoFinanceiro(Usuario usuario, String atributo) {
+        return switch (atributo) {
             case "plano" -> usuario.getAssinatura().getPlano().getNome();
             case "mensalidade" -> Formato.dinheiro(usuario.getAssinatura().getMensalidade());
+            case "totalPendencias" -> Formato.dinheiro(usuario.getTotalPendencias());
             case "metodoPagamento" -> usuario.getMetodoPagamento().getTipo();
+            case "numeroCartao" -> usuario.getMetodoPagamento().getNumeroCartao();
+            case "validadeCartao" -> usuario.getMetodoPagamento().getValidadeCartao();
+            case "chavePix" -> usuario.getMetodoPagamento().getChavePix();
+            case "saldo" -> Formato.dinheiro(usuario.getSaldo());
             default -> throw new AtributoInexistenteException();
         };
     }

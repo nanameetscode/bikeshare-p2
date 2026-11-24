@@ -13,6 +13,8 @@ import br.ufal.ic.p2.bikeshare.sistema.Cadastro;
 import br.ufal.ic.p2.bikeshare.sistema.EstadoSistema;
 import br.ufal.ic.p2.bikeshare.util.Validador;
 
+import java.util.Optional;
+
 /** Cadastro e consulta de usuarios. Todos os dados sao validados antes de qualquer alteracao. */
 public class UsuarioService {
 
@@ -56,6 +58,16 @@ public class UsuarioService {
         return AtributosUsuario.ler(buscar(id), atributo);
     }
 
+    /** Busca o identificador do usuario pelo email, sem diferenciar maiusculas de minusculas. */
+    public String buscarIdPorEmail(String email) {
+        Validador.obrigatorio(email, "Email nao pode ser nulo.");
+        return buscarPorEmail(email).map(Usuario::getId).orElseThrow(UsuarioNaoEncontradoException::new);
+    }
+
+    private Optional<Usuario> buscarPorEmail(String email) {
+        return usuarios().valores().stream().filter(u -> u.temEmail(email)).findFirst();
+    }
+
     private void validarDados(DadosUsuario dados) {
         Validador.obrigatorio(dados.nome(), "Nome nao pode ser nulo.");
         exigirEmailLivre(Validador.email(dados.email()));
@@ -63,7 +75,7 @@ public class UsuarioService {
     }
 
     private void exigirEmailLivre(String email) {
-        if (usuarios().valores().stream().anyMatch(u -> u.temEmail(email))) {
+        if (buscarPorEmail(email).isPresent()) {
             throw new EmailJaCadastradoException();
         }
     }

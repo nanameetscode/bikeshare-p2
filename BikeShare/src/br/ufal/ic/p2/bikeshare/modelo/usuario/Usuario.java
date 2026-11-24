@@ -6,6 +6,8 @@ import br.ufal.ic.p2.bikeshare.modelo.pagamento.SemMetodoPagamento;
 import br.ufal.ic.p2.bikeshare.modelo.plano.Assinatura;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Optional;
 
 /**
  * Ciclista cadastrado. Concentra os dados comuns a pessoa fisica e juridica;
@@ -24,6 +26,9 @@ public abstract class Usuario implements Serializable {
     private Assinatura assinatura;
     private MetodoPagamento metodoPagamento = new SemMetodoPagamento();
     private EstadoUsuario estado = EstadoUsuario.ATIVO;
+    private BigDecimal saldo = BigDecimal.ZERO;
+    private BigDecimal totalPendencias = BigDecimal.ZERO;
+    private String aluguelAtivo;
 
     protected Usuario(String id, DadosUsuario dados, Assinatura assinatura) {
         this.id = id;
@@ -62,6 +67,24 @@ public abstract class Usuario implements Serializable {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    /** Saldo pre-carregado; so pode ser consultado se o metodo de pagamento atual usar saldo. */
+    public BigDecimal getSaldo() {
+        return metodoPagamento.exibirSaldo(saldo);
+    }
+
+    public BigDecimal getTotalPendencias() {
+        return totalPendencias;
+    }
+
+    /** Identificador do aluguel em andamento, se houver. */
+    public Optional<String> getAluguelAtivo() {
+        return Optional.ofNullable(aluguelAtivo);
     }
 
     public Assinatura getAssinatura() {
